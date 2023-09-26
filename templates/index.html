@@ -17,7 +17,9 @@
                 <a class="navbar-brand" href="#">
                     <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
                 </a>
-                <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Войти</button>
+                <a href="{% url 'auth' %}">
+                    <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Войти</button>
+                </a>
             </div>
         </nav>
     </header>
@@ -31,7 +33,9 @@
                             Вы получаете рецепты + список продуктов.<br>
                             Больше не нужно думать, что готовить.</h4>
                         <div class="d-block mt-3">
-                            <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Хочу попробовать</button>
+                            <a href="{% url 'order' %}">
+                                <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Хочу попробовать</button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -106,7 +110,7 @@
                                 </div>
                             </div>
                             <div class="carousel-item">
-                                <img src="https://foodplan.ru/local/images-for-pages/landing/img/cards/5.jpg' %}" class="d-block w-100"
+                                <img src="https://foodplan.ru/local/images-for-pages/landing/img/cards/5.jpg" class="d-block w-100"
                                     alt="...">
                                 <div class="card-img-overlay text-white text-center carousel-item__gradient">
                                     <h5><b>Который все пекут повторно</b></h5>
