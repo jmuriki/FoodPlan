@@ -32,6 +32,7 @@ urlpatterns = [
     path('sign_in', views.sign_in, name="sign_in"),
     path('sign_out', views.sign_out, name="sign_out"),
     path('recovery', views.show_recovery, name="recovery"),
+    path('recover_password', views.recover_password, name="recover_password"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

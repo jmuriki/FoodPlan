@@ -6,7 +6,6 @@ from email.mime.multipart import MIMEMultipart
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import auth
 from django.contrib.auth.models import User
@@ -103,15 +102,15 @@ def sign_out(request):
 	return redirect('main_page')
 
 
-def recover_password(request):
+def recover_password(request, context={}):
 	if request.method == 'POST':
 		receiver_email = request.POST.get('email')
 
-		user = User.objects.get(username=email)
-
-		if user is not None:
+		try:
+			user = User.objects.get(username=receiver_email)
 			new_password = random.randint(100000, 999999)
 			user.password = new_password
+			user.save
 			text = f"""Здравствуйте!
 			Ваш новый пароль: {new_password}.
 			Пожалуйста, поменяйте его на более надёжный как можно скорее.
@@ -119,35 +118,34 @@ def recover_password(request):
 			send_email(receiver_email, "Восстановление пароля FoodPlan", text)
 			context['message'] = 'Новый пароль отправлен на указанный email.'
 			return render(request, 'auth.html', context)
-		else:
+		except User.DoesNotExist:
 			context['error'] = 'Данный email не зарегистрирован в системе.'
-			return render(request, 'recover.html', context)
+			return render(request, 'recovery.html', context)
 	else:
 		context['error'] = 'Ошибка: неверный тип запроса.'
-		return render(request, 'recover.html', context)
+		return render(request, 'recovery.html', context)
 
 
 def send_email(receiver_email, subject, text):
-    # Создаем объект SMTP
-    smtp_server = 'smtp.gmail.com'  # Для Gmail используем этот SMTP-сервер
-    smtp_port = 587  # Порт для Gmail
+	sender_email = settings.SENDER_EMAIL
+	sender_password = settings.SENDER_PASSWORD
 
-    # Создаем объект сообщения
-    message = MIMEMultipart()
-    message['From'] = sender_email
-    message['To'] = receiver_email
-    message['Subject'] = 'Отправка пароля'
+	smtp_server = 'smtp.yandex.com'
+	smtp_port = 587
 
-    # Добавляем текст сообщения в объект MIMEText
-    message.attach(MIMEText(text, 'plain'))
+	message = MIMEMultipart()
+	message['From'] = sender_email
+	message['To'] = receiver_email
+	message['Subject'] = subject
 
-    try:
-        # Устанавливаем соединение с сервером SMTP
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()  # Защищенное TLS-соединение
-        server.login(sender_email, sender_password)  # Аутентификация на сервере
-        server.sendmail(sender_email, receiver_email, message.as_string())  # Отправка сообщения
-        server.quit()  # Завершаем соединение с сервером
-        print('Пароль успешно отправлен на адрес', receiver_email)
-    except Exception as e:
-        print('Ошибка при отправке почты:', str(e))
+	message.attach(MIMEText(text, 'plain'))
+
+	try:
+		server = smtplib.SMTP(smtp_server, smtp_port)
+		server.starttls()
+		server.login(sender_email, sender_password)
+		server.sendmail(sender_email, receiver_email, message.as_string())
+		server.quit()
+		print('Пароль успешно отправлен на адрес', receiver_email)
+	except Exception as e:
+		print('Ошибка при отправке почты:', str(e))
