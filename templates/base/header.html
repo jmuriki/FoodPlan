@@ -2,10 +2,14 @@
     <header>
         <nav class="navbar navbar-light fixed-top navbar__opacity">
             <div class="container">
-                <a class="navbar-brand" href="#">
+                <a class="navbar-brand" href="{% url 'main_page' %}">
                     <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
                 </a>
-
+                    {% url 'order' as order_url %}
+                    {% if request.path == order_url %}
+                        <h3 class="text-secondary mt-2 me-2">Стоимость: 00000₽</h3>
+                        <button form="order" type="submit" class="btn shadow-none btn-sm btn-outline-success foodplan_green foodplan__border_green">Оплатить</button>
+                    {% endif %}
                     <li class="nav-item align-items-center d-md-flex flex-grow-1 justify-content-end">
                     {% if user.is_authenticated %}
                         <a href="{% url 'order' %}">
