@@ -29,7 +29,7 @@
                             <a href="{% url 'order' %}">
                                 <button class="btn shadow-none btn-outline-success me-2 foodplan_green foodplan__border_green">Подписка</button>
                             </a>
-                            <a href="{% url 'auth' %}">
+                            <a href="{% url 'authentication' %}">
                                 <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Войти</button>
                             </a>
                         </li>
@@ -52,30 +52,31 @@
                     <h2 class="text-center"><strong>Авторизация</strong></h2>
                 </div>
                 <div class="card px-5 py-3 d-flex align-items-center foodplan__shadow">
-                    <form>
+                    <form method="post" action="{% url 'sign_up' %}">
+                        {% csrf_token %}
                         <h1 class="mb-4 text-center"><strong>Регистрация</strong></h1>
                         <div class="mb-3">
                             <label for="exampleInputEmail1" class="form-label">Имя</label>
-                            <input type="text" class="form-control" id="name">
+                            <input type="text" class="form-control" id="name" name="name">
                         </div>
                         <div class="mb-3">
                             <label for="exampleInputEmail1" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" aria-describedby="emailHelp">
+                            <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp">
                         </div>
                         <div class="mb-3">
                             <label for="exampleInputPassword1" class="form-label">Пароль</label>
-                            <input type="password" class="form-control" id="password">
+                            <input type="password" class="form-control" id="password" name="password">
                         </div>
                         <div class="mb-3">
                             <label for="exampleInputPassword1" class="form-label">Подтверждение пароля</label>
-                            <input type="password" class="form-control" id="PasswordConfirm">
+                            <input type="password" class="form-control" id="PasswordConfirm" name="PasswordConfirm">
                         </div>
                         <div class="row mb-3">
                             <div class="col-12 col-sm-6 mt-3">
                                 <button type="submit" class="btn  shadow-nonew-100 btn-outline-success foodplan_green foodplan__border_green">Регистрация</button>
                             </div>
                             <div class="col-12 col-sm-6 mt-3 d-flex justify-content-center align-items-center">
-                                <small>Уже есть аккаунт? <a href="{% url 'auth' %}" class="link-dark foodplan_green">Войти</a></small>
+                                <small>Уже есть аккаунт? <a href="{% url 'authentication' %}" class="link-dark foodplan_green">Войти</a></small>
                             </div>
                         </div>
                     </form>
