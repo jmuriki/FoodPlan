@@ -158,3 +158,4 @@ PyCharm
 # This project
 .DS_Store
 staticfiles
+media

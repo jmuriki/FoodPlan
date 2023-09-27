@@ -13,10 +13,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
 from functools import wraps
+from home_menu.models import Dish
 
 
 def show_index(request):
-	return render(request, 'index.html')
+	card_items = Dish.objects.all()
+	return render(request, 'index.html', context={
+		'card_items': card_items
+	})
 
 
 def show_registration(request):
@@ -36,8 +40,13 @@ def show_lk(request):
 	return render(request, 'lk.html')
 
 
-def show_card(request):
-	return render(request, 'card.html')
+def show_card(request, card_id):
+	card_item = Dish.objects.filter(id=card_id)
+	total_calories = sum([product.weight for dish in card_item for product in dish.product.all()])
+	return render(request, 'card.html', context={
+		'card_item': card_item,
+		'total_calories': total_calories
+	})
 
 
 def show_order(request):
