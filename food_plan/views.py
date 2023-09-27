@@ -1,6 +1,11 @@
+import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import auth
 from django.contrib.auth.models import User
@@ -10,29 +15,33 @@ from django.contrib.auth import authenticate, login, logout
 from functools import wraps
 
 
-def index(request):
+def show_index(request):
 	return render(request, 'index.html')
 
 
-def authentication(request):
+def show_registration(request):
+	return render(request, 'registration.html')
+
+
+def show_auth(request):
 	return render(request, 'auth.html')
 
 
-def card(request):
-	return render(request, 'card.html')
+def show_recovery(request):
+	return render(request, 'recovery.html')
 
 
 @login_required
-def lk(request):
+def show_lk(request):
 	return render(request, 'lk.html')
 
 
-def order(request):
+def show_card(request):
+	return render(request, 'card.html')
+
+
+def show_order(request):
 	return render(request, 'order.html')
-
-
-def registration(request):
-	return render(request, 'registration.html')
 
 
 @login_required
@@ -91,3 +100,52 @@ def sign_in(request, context={}):
 def sign_out(request):
 	logout(request)
 	return redirect('main_page')
+
+
+def recover_password(request, context={}):
+	if request.method == 'POST':
+		receiver_email = request.POST.get('email')
+
+		try:
+			user = User.objects.get(username=receiver_email)
+			new_password = random.randint(100000, 999999)
+			user.password = new_password
+			user.save
+			text = f"""Здравствуйте!
+			Ваш новый пароль: {new_password}.
+			Пожалуйста, поменяйте его на более надёжный как можно скорее.
+			"""
+			send_email(receiver_email, "Восстановление пароля FoodPlan", text)
+			context['message'] = 'Новый пароль отправлен на указанный email.'
+			return render(request, 'auth.html', context)
+		except User.DoesNotExist:
+			context['error'] = 'Данный email не зарегистрирован в системе.'
+			return render(request, 'recovery.html', context)
+	else:
+		context['error'] = 'Ошибка: неверный тип запроса.'
+		return render(request, 'recovery.html', context)
+
+
+def send_email(receiver_email, subject, text):
+	sender_email = settings.SENDER_EMAIL
+	sender_password = settings.SENDER_PASSWORD
+
+	smtp_server = 'smtp.yandex.com'
+	smtp_port = 587
+
+	message = MIMEMultipart()
+	message['From'] = sender_email
+	message['To'] = receiver_email
+	message['Subject'] = subject
+
+	message.attach(MIMEText(text, 'plain'))
+
+	try:
+		server = smtplib.SMTP(smtp_server, smtp_port)
+		server.starttls()
+		server.login(sender_email, sender_password)
+		server.sendmail(sender_email, receiver_email, message.as_string())
+		server.quit()
+		print('Пароль успешно отправлен на адрес', receiver_email)
+	except Exception as e:
+		print('Ошибка при отправке почты:', str(e))

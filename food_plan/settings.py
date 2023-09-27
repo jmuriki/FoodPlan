@@ -9,6 +9,9 @@ from django.core.management.utils import get_random_secret_key
 env = Env()
 env.read_env()
 
+SENDER_EMAIL = env.str('SENDER_EMAIL', default=None)
+SENDER_PASSWORD = env.str('SENDER_PASSWORD', default=None)
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env.str('SECRET_KEY', default=get_random_secret_key())
