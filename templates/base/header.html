@@ -1,0 +1,26 @@
+{% load static %}
+    <header>
+        <nav class="navbar navbar-light fixed-top navbar__opacity">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
+                </a>
+
+                    <li class="nav-item align-items-center d-md-flex flex-grow-1 justify-content-end">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'order' %}">
+                            <button class="btn btn-outline-success me-2 shadow-none foodplan_green foodplan__border_green">Подписка</button>
+                        </a>
+                        <a href="{% url 'logout' %}">
+                            <button class="btn btn-outline-success shadow-none foodplan_green foodplan__border_green">Выйти</button>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'auth' %}">
+                            <button class="btn btn-outline-success shadow-none foodplan_green foodplan__border_green">Войти</button>
+                        </a>
+                    {% endif %}
+                    </li>
+            </div>
+        </nav>
+
+    </header>
