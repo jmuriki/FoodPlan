@@ -9,7 +9,6 @@ class Dish(models.Model):
     image = models.ImageField('Изображение')
     category = models.ForeignKey('Category', verbose_name='Категория', on_delete=models.CASCADE)
     product = models.ManyToManyField('Product', verbose_name='Состав')
-    price = models.DecimalField('Цена', max_digits=8, decimal_places=2, db_index=True, validators=[MinValueValidator(0)])
 
     class Meta:
         verbose_name = 'Блюдо'
@@ -32,6 +31,7 @@ class Category(models.Model):
 
 class Product(models.Model):
     title = models.CharField('Название', max_length=50)
+    weight = models.IntegerField('Количество грамм')
 
     class Meta:
         verbose_name = 'Продукт'
@@ -54,7 +54,7 @@ class Allergy(models.Model):
 
 class Customer(models.Model):
     user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE)
-    promo_code = models.ManyToManyField('PromotionalCode', verbose_name='Промо-код', blank=True, null=True)
+    promo_code = models.ManyToManyField('PromotionalCode', verbose_name='Промо-код', blank=True)
     image = models.ImageField('Фото')
 
     class Meta:
@@ -81,12 +81,12 @@ class Subscription(models.Model):
     title = models.CharField('Название', max_length=50)
     description = models.TextField('Описание')
     persons = models.PositiveIntegerField('Количество персон', validators=[MaxValueValidator(6)])
-    allergy = models.ManyToManyField('Allergy', verbose_name='Аллергия', blank=True, null=True)
+    allergy = models.ManyToManyField('Allergy', verbose_name='Аллергия', blank=True)
     calories = models.IntegerField('Калории')
     number_meals = models.PositiveIntegerField('Количество приемов пищи', validators=[MaxValueValidator(4)])
     price = models.DecimalField('Цена', max_digits=8, decimal_places=2, db_index=True, validators=[MinValueValidator(0)])
     type_dish = models.ForeignKey('Category', verbose_name='Тип блюда', on_delete=models.CASCADE)
-    promo_code = models.ManyToManyField('PromotionalCode', verbose_name='Промо-код', blank=True, null=True)
+    promo_code = models.ManyToManyField('PromotionalCode', verbose_name='Промо-код', blank=True)
 
     class Meta:
         verbose_name = 'Подписка'

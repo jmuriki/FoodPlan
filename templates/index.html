@@ -87,42 +87,17 @@
                 <div class="container w-md-75">
                     <div id="carousel1" class="carousel slide" data-bs-ride="carousel">
                         <div class="carousel-inner">
-                            <div class="carousel-item active">
-                                <img src="{% static 'img/1.jpg' %}" class="d-block w-100" alt="...">
-                                <div class="card-img-overlay text-white text-center carousel-item__gradient">
-                                    <h5><b>Модный и полезный ужин</b></h5>
-                                    <h2><b>Боул с креветками и рисом</b></h2>
+                            {% for item in card_items %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    <a href="/card/{{ item.id }}">
+                                        <img src="{{ item.image.url }}" class="d-block w-100" alt="{{ item.title }}">
+                                        <div class="card-img-overlay text-white text-center carousel-item__gradient">
+                                            <h5><b>{{ item.description }}</b></h5>
+                                            <h2><b>{{ item.title }}</b></h2>
+                                        </div>
+                                    </a>
                                 </div>
-                            </div>
-                            <div class="carousel-item">
-                                <img src="{% static 'img/2.jpg' %}" class="d-block w-100" alt="...">
-                                <div class="card-img-overlay text-white text-center carousel-item__gradient">
-                                    <h5><b>Интересно, просто и супер вкусно</b></h5>
-                                    <h2><b>Тосканский суп с фаршем</b></h2>
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <img src="{% static 'img/3.jpg' %}" class="d-block w-100" alt="...">
-                                <div class="card-img-overlay text-white text-center carousel-item__gradient">
-                                    <h5><b>Понятное всей семье, яркое на вкус</b></h5>
-                                    <h2><b>Паприкаш с курицей</b></h2>
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <img src="{% static 'img/4.jpg' %}" class="d-block w-100" alt="...">
-                                <div class="card-img-overlay text-white text-center carousel-item__gradient">
-                                    <h5></h5><b>Летнее удовольствие</b></h5>
-                                    <h2><b>Овощной салат с жареным халуми</b></h2>
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <img src="https://foodplan.ru/local/images-for-pages/landing/img/cards/5.jpg" class="d-block w-100"
-                                    alt="...">
-                                <div class="card-img-overlay text-white text-center carousel-item__gradient">
-                                    <h5><b>Который все пекут повторно</b></h5>
-                                    <h2><b>Брауни чизкейк с ягодами</b></h2>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
                         <button class="carousel-control-prev carousel__button_prev" type="button" data-bs-target="#carousel1"
                             data-bs-slide="prev">

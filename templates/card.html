@@ -25,35 +25,30 @@
         <section>
             <div class="container">
                 <div class="row">
-                    <div class="col-12 col-md-4 d-flex justify-content-center">
-                        <div class="card foodplan__card_borderless">
-                            <img src="{% static 'img/circle1.png' %}" alt="">
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-8 d-flex flex-column justify-content-between">
-                        <div class="row">
-                            <h2>Название рецепта</h2>
-                            <div class="col-12 col-sm-6 d-flex flex-column justify-content-between">
-                                <h6>Описание рецепта Lorem ipsum dolor sit amet consectetur adipisicing elit. Excepturi eius nemo voluptatum minus
-                                    facilis blanditiis ut architecto rem maiores, aperiam aut debitis repellat quod voluptates natus, laboriosam hic
-                                    adipisci non.</h6>
-                                <h6>Рецепт рецепт Lorem ipsum dolor sit amet consectetur adipisicing elit. Excepturi eius nemo voluptatum minus
-                                    facilis blanditiis ut architecto rem maiores, aperiam aut debitis repellat quod voluptates natus, laboriosam hic
-                                    adipisci non.</h6>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <small class="link-secondary">Ингредиенты:</small>
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item disabled"><small>ингредиент (500г.)</small></li>
-                                    <li class="list-group-item disabled"><small>ингредиент (500г.)</small></li>
-                                    <li class="list-group-item disabled"><small>ингредиент (500г.)</small></li>
-                                    <li class="list-group-item disabled"><small>ингредиент (500г.)</small></li>
-                                    <li class="list-group-item disabled"><small>ингредиент (500г.)</small></li>
-                                </ul>
-                                <small class="link-secondary">Общая калорийность: 1000 ккал</small>
+                    {% for item in card_item %}
+                        <div class="col-12 col-md-4 d-flex justify-content-center">
+                            <div class="card foodplan__card_borderless">
+                                <img src="{{ item.image.url }}" alt="{{ item.title }}">
                             </div>
                         </div>
-                    </div>
+                        <div class="col-12 col-md-8 d-flex flex-column justify-content-between">
+                            <div class="row">
+                                <h2>{{ item.title }}</h2>
+                                <div class="col-12 col-sm-6 d-flex flex-column justify-content-between">
+                                    <h6>{{ item.description }}</h6>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <small class="link-secondary">Ингредиенты:</small>
+                                    <ul class="list-group list-group-flush">
+                                        {% for product in item.product.all %}
+                                            <li class="list-group-item disabled"><small>{{ product.title }} ({{ product.weight }}г.)</small></li>
+                                        {% endfor %}
+                                    </ul>
+                                    <small class="link-secondary">Общая калорийность: {{ total_calories }} ккал</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </section>
