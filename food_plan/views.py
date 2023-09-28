@@ -53,6 +53,14 @@ def show_order(request):
 	return render(request, 'order.html')
 
 
+def show_privacy_policy(request):
+	return render(request, 'privacy.html')
+
+
+def show_terms_of_use(request):
+	return render(request, 'terms.html')
+
+
 @login_required
 def pay(request):
 	return render(request, 'pay.html')

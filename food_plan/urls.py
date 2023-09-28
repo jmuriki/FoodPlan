@@ -18,6 +18,8 @@ urlpatterns = [
     path('sign_out', views.sign_out, name="sign_out"),
     path('recovery', views.show_recovery, name="recovery"),
     path('recover_password', views.recover_password, name="recover_password"),
+    path('privacy_policy', views.show_privacy_policy, name="privacy"),
+    path('terms_of_use', views.show_terms_of_use, name="terms"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

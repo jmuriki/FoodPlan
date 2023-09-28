@@ -15,7 +15,7 @@
     <header>
         <nav class="navbar navbar-expand-md navbar-light fixed-top navbar__opacity">
             <div class="container">
-                <a class="navbar-brand" href="#">
+                <a class="navbar-brand" href="{% url 'main_page' %}">
                     <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse1"
@@ -29,9 +29,15 @@
                             <a href="{% url 'order' %}">
                                 <button class="btn shadow-none btn-outline-success me-2 foodplan_green foodplan__border_green">Подписка</button>
                             </a>
-                            <a href="{% url 'authentication' %}">
-                                <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Войти</button>
-                            </a>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'sign_out' %}">
+                                    <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Выйти</button>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'authentication' %}">
+                                    <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Войти</button>
+                                </a>
+                            {% endif %}
                         </li>
                     </ul>
                 </div>
@@ -49,49 +55,55 @@
                                 d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z" />
                         </svg>
                     </a>
-                    <h2 class="text-center"><strong>Авторизация</strong></h2>
+                    {% if not user.is_authenticated %}
+                        <h2 class="text-center"><strong>Авторизация</strong></h2>
+                    {% else %}
+                        <h2 class="text-center"><strong>Вы уже авторизованы</strong></h2>
+                    {% endif %}
                 </div>
-                <div class="card px-5 py-3 d-flex align-items-center foodplan__shadow">
-                    <form method="post" action="{% url 'sign_up' %}">
-                        {% csrf_token %}
-                        <h1 class="mb-4 text-center"><strong>Регистрация</strong></h1>
-                        <div class="mb-3">
-                            <label for="exampleInputEmail1" class="form-label">Имя</label>
-                            <input type="text" class="form-control" id="name" name="name">
-                        </div>
-                        <div class="mb-3">
-                            <label for="exampleInputEmail1" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp">
-                        </div>
-                        <div class="mb-3">
-                            <label for="exampleInputPassword1" class="form-label">Пароль</label>
-                            <input type="password" class="form-control" id="password" name="password">
-                        </div>
-                        <div class="mb-3">
-                            <label for="exampleInputPassword1" class="form-label">Подтверждение пароля</label>
-                            <input type="password" class="form-control" id="PasswordConfirm" name="PasswordConfirm">
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-12 col-sm-6 mt-3">
-                                <button type="submit" class="btn  shadow-nonew-100 btn-outline-success foodplan_green foodplan__border_green">Регистрация</button>
+                {% if not user.is_authenticated %}
+                    <div class="card px-5 py-3 d-flex align-items-center foodplan__shadow">
+                        <form method="post" action="{% url 'sign_up' %}">
+                            {% csrf_token %}
+                            <h1 class="mb-4 text-center"><strong>Регистрация</strong></h1>
+                            <div class="mb-3">
+                                <label for="exampleInputEmail1" class="form-label">Имя</label>
+                                <input type="text" class="form-control" id="name" name="name">
                             </div>
-                            <div class="col-12 col-sm-6 mt-3 d-flex justify-content-center align-items-center">
-                                <small>Уже есть аккаунт? <a href="{% url 'authentication' %}" class="link-dark foodplan_green">Войти</a></small>
+                            <div class="mb-3">
+                                <label for="exampleInputEmail1" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp">
                             </div>
-                        </div>
-                    </form>
-                </div>
+                            <div class="mb-3">
+                                <label for="exampleInputPassword1" class="form-label">Пароль</label>
+                                <input type="password" class="form-control" id="password" name="password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="exampleInputPassword1" class="form-label">Подтверждение пароля</label>
+                                <input type="password" class="form-control" id="PasswordConfirm" name="PasswordConfirm">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-12 col-sm-6 mt-3">
+                                    <button type="submit" class="btn  shadow-nonew-100 btn-outline-success foodplan_green foodplan__border_green">Регистрация</button>
+                                </div>
+                                <div class="col-12 col-sm-6 mt-3 d-flex justify-content-center align-items-center">
+                                    <small>Уже есть аккаунт? <a href="{% url 'authentication' %}" class="link-dark foodplan_green">Войти</a></small>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
             </div>
         </section>
     </main>
     <footer>
         <nav class="navbar navbar-expand-md navbar-light mt-5">
             <div class="container p-2">
-                <a class="navbar-brand" href="#">
+                <a class="navbar-brand" href="{% url 'main_page' %}">
                     <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
                 </a>
                 <div class="footer__sideBtns d-flex">
-                    <a href="#">
+                    <a href="https://vk.com/devmanorg">
                         <img src="{% static 'img/vk.png' %}" height="38" width="auto" alt="">
                     </a>
                 </div>
@@ -101,7 +113,7 @@
     <footer class="footer pt-2" style="border-top: 1px solid lightgray;">
         <div class="container d-flex flex-row justify-content-center mb-2">
             <small class="text-center">
-                <h6>© Девман2022. Все права защищены. © Devman2022. All right reserved.</h6><a href="#"
+                <h6>© Девман2023. Все права защищены. © Devman2023. All right reserved.</h6><a href="{% url 'privacy' %}"
                     class="link-secondary">Политика конфиденциальности</a>
             </small>
         </div>
