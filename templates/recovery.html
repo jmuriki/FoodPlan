@@ -14,7 +14,7 @@
     <header>
         <nav class="navbar navbar-expand-md navbar-light fixed-top navbar__opacity">
             <div class="container">
-                <a class="navbar-brand" href="#">
+                <a class="navbar-brand" href="{% url 'main_page' %}">
                     <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse1"
@@ -74,11 +74,11 @@
     <footer>
         <nav class="navbar navbar-expand-md navbar-light mt-5">
             <div class="container p-2">
-                <a class="navbar-brand" href="#">
+                <a class="navbar-brand" href="{% url 'main_page' %}">
                     <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
                 </a>
                 <div class="footer__sideBtns d-flex">
-                    <a href="#">
+                    <a href="https://vk.com/devmanorg">
                         <img src="{% static 'img/vk.png' %}" height="38" width="auto" alt="">
                     </a>
                 </div>
@@ -88,8 +88,8 @@
     <footer class="footer pt-2" style="border-top: 1px solid lightgray;">
         <div class="container d-flex flex-row justify-content-center mb-2">
             <small class="text-center">
-                <h6>© Девман2022. Все права защищены. © Devman2022. All right reserved.</h6>
-                <a href="#" class="link-secondary">Политика конфиденциальности</a>
+                <h6>© Девман2023. Все права защищены. © Devman2023. All right reserved.</h6>
+                <a href="{% url 'privacy' %}" class="link-secondary">Политика конфиденциальности</a>
             </small>
         </div>
     </footer>
