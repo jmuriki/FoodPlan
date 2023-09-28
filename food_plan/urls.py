@@ -20,6 +20,7 @@ urlpatterns = [
     path('recover_password', views.recover_password, name="recover_password"),
     path('privacy_policy', views.show_privacy_policy, name="privacy"),
     path('terms_of_use', views.show_terms_of_use, name="terms"),
+    path('change_info', views.change_info, name="change_info"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

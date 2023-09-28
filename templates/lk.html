@@ -40,7 +40,7 @@
                             <span class="badge rounded-circle position-absolute bottom-0 end-0 foodplan__bg_green avatar__plus"><a href="#"
                                     class="link-dark text-decoration-none align-middle">+</a></span>
                         </div>
-                        <h3 class="card-title text-center">Tim</h3>
+                        <h3 class="card-title text-center">{{ first_name }}</h3>
                         <div class="d-block">
                             <a href="{% url 'sign_out' %}">
                                 <button class="btn btn-outline-success shadow-none foodplan_green foodplan__border_green">Выйти</button>
@@ -60,30 +60,29 @@
                             </ul>
                             <div class="tab-content mt-2">
                                 <div class="tab-pane fade show active" id="data">
-                                    <form action="">
+                                    <form method="post" action="{% url 'change_info' %}">
+                                        {% csrf_token %}
                                         <div class="mb-3">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <label for="exampleInputEmail1" class="form-label">Имя</label>
                                                 <small><a href="#" class="link-dark foodplan_green">изменить</a></small>
                                             </div>
-                                        
-                                            <input type="text" class="form-control" id="name">
+                                            <input type="text" class="form-control" id="name" name="name" value="{{ first_name }}">
                                         </div>
                                         <div class="mb-3">
                                             <label for="exampleInputEmail1" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="email" aria-describedby="emailHelp">
+                                            <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" value="{{ email }}">
                                         </div>
                                         <div class="mb-3">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <label for="exampleInputPassword1" class="form-label">Пароль</label>
                                                 <small><a href="#" class="link-dark foodplan_green">изменить</a></small>
                                             </div>
-                                        
-                                            <input type="password" class="form-control" id="password">
+                                            <input type="password" class="form-control" id="password" name="password">
                                         </div>
                                         <div class="mb-3">
                                             <label for="exampleInputPassword1" class="form-label">Подтверждение пароля</label>
-                                            <input type="password" class="form-control" id="PasswordConfirm">
+                                            <input type="password" class="form-control" id="PasswordConfirm" name="PasswordConfirm">
                                         </div>
                                         <div class="d-block">
                                             <button type="submit" class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Сохранить
