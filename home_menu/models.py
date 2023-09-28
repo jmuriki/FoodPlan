@@ -62,7 +62,7 @@ class Customer(models.Model):
         verbose_name_plural = 'Клиенты'
 
     def __str__(self):
-        return self.user.name
+        return self.user.first_name
 
 
 class PromotionalCode(models.Model):

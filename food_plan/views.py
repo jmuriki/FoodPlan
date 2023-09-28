@@ -12,6 +12,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
+from home_menu.models import Customer
+
 from functools import wraps
 from home_menu.models import Dish
 
@@ -36,8 +38,12 @@ def show_recovery(request):
 
 
 @login_required
-def show_lk(request):
-	return render(request, 'lk.html')
+def show_lk(request, context={}):
+	user_id = request.user.id
+	customer = Customer.objects.get(user=user_id)
+	context['first_name'] = request.user.first_name
+	context['email'] = request.user.email
+	return render(request, 'lk.html', context)
 
 
 def show_card(request, card_id):
@@ -71,19 +77,22 @@ def sign_up(request, context={}):
 		name = request.POST['name']
 		email = request.POST['email']
 		password = request.POST['password']
-		confirm_password = request.POST['PasswordConfirm']
+		password_confirm = request.POST['PasswordConfirm']
 
 		if User.objects.filter(email=email).exists():
 			context['error'] = """Такой пользователь уже зарегистрирован.
 			Если вы не помните свой пароль,
 			сделайте, пожалуйста, запрос на восстановление."""
 			return render(request, 'registration.html', context)
-		elif password == confirm_password:
+		elif password == password_confirm:
 			user = User.objects.create_user(
 				first_name=name,
 				username=email,
 				email=email,
 				password=password,
+			)
+			Customer.objects.create(
+				user=user,
 			)
 			login(request, user)
 			return redirect('lk')
@@ -126,8 +135,8 @@ def recover_password(request, context={}):
 		try:
 			user = User.objects.get(username=receiver_email)
 			new_password = random.randint(100000, 999999)
-			user.password = new_password
-			user.save
+			user.set_password(f"{new_password}")
+			user.save()
 			text = f"""Здравствуйте!
 			Ваш новый пароль: {new_password}.
 			Пожалуйста, поменяйте его на более надёжный как можно скорее.
@@ -166,3 +175,27 @@ def send_email(receiver_email, subject, text):
 		print('Пароль успешно отправлен на адрес', receiver_email)
 	except Exception as e:
 		print('Ошибка при отправке почты:', str(e))
+
+
+def change_info(request, context={}):
+	if request.method == 'POST':
+		new_name = request.POST.get('name')
+		new_email = request.POST.get('email')
+		new_password = request.POST.get('password')
+		new_password_confirm = request.POST.get('PasswordConfirm')
+
+		user = request.user
+
+		if user.first_name != new_name:
+			user.first_name = new_name
+		if user.email != new_email:
+			user.email = new_email
+		if new_password and new_password == new_password_confirm:
+			user.set_password(new_password)
+
+		user.save()
+		login(request, user)
+		return redirect('lk')
+	else:
+		context['error'] = 'Ошибка: неверный тип запроса.'
+		return render(request, 'lk.html', context)
