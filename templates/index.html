@@ -17,9 +17,15 @@
                 <a class="navbar-brand" href="{% url 'main_page' %}">
                     <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
                 </a>
-                <a href="{% url 'authentication' %}">
-                    <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Войти</button>
-                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'sign_out' %}">
+                        <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Выйти</button>
+                    </a>
+                {% else %}
+                    <a href="{% url 'authentication' %}">
+                        <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Войти</button>
+                    </a>
+                {% endif %}
             </div>
         </nav>
     </header>
