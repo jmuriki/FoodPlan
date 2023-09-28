@@ -18,6 +18,9 @@
                     <img src="{% static 'img/logo.8d8f24edbb5f.svg' %}" height="55" width="189" alt="">
                 </a>
                 {% if user.is_authenticated %}
+                    <a href="{% url 'lk' %}">
+                        <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Личный Кабинет</button>
+                    </a>
                     <a href="{% url 'sign_out' %}">
                         <button class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Выйти</button>
                     </a>
