@@ -4,7 +4,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import JsonResponse, HttpResponse
+from django.db import DatabaseError, OperationalError
 from django.shortcuts import render, redirect
 
 from django.contrib import auth
@@ -15,7 +16,7 @@ from django.contrib.auth import authenticate, login, logout
 from home_menu.models import Customer
 
 from functools import wraps
-from home_menu.models import Dish
+from home_menu.models import Dish, Subscription, Category, Allergy
 
 
 def show_index(request):
@@ -56,6 +57,48 @@ def show_card(request, card_id):
 
 
 def show_order(request):
+	if request.method == 'POST':
+		persons = request.POST.get('select5')
+		number_meals = sum([int(request.POST.get(f'select{i}', 0)) for i in range(1, 5)])
+		type_food = request.POST.get('foodtype')
+		allergy_keys = ['allergy1', 'allergy2', 'allergy3', 'allergy4', 'allergy5', 'allergy6']
+		allergies = [request.POST.get(key) for key in allergy_keys if request.POST.get(key)]
+		validity = request.POST.get('select')
+		prices = {
+			'1 мес.': 1000,
+			'3 мес.': 2750,
+			'6 мес.': 5500,
+			'12 мес.': 11000
+		}
+		descriptions = {
+			'Классическое': 'Вкусное и привычное сочетание блюд для тех, кто ценит традиционный вкус. Наши классические блюда подходят для всех возрастов и вкусов, идеальный выбор для тех, кто ищет знакомый вкус и удовольствие от еды.',
+			'Низкоуглеводное': 'Забота о здоровье и фигуре начинается с того, что вы едите. Наше низкоуглеводное меню предлагает легкие и вкусные блюда, богатые белками и низким содержанием углеводов. Оно идеально подходит для тех, кто следит за своим уровнем углеводов.',
+			'Вегетарианское': 'Наслаждайтесь вкусом и питательностью растительных блюд. Наше вегетарианское меню предлагает разнообразные варианты без мяса, но полные вкуса. От свежих салатов до креативных вегетарианских блюд - у нас есть что-то для каждого вегетарианца.',
+			'Кето': 'Для тех, кто придерживается диеты с низким содержанием углеводов и высоким содержанием жиров. Наше кето-меню предлагает богатые вкусом блюда, которые помогут вам достичь ваших целей в отношении питания, сохраняя при этом уровень углеводов на минимальном уровне.'
+		}
+		description = descriptions.get(type_food)
+		price = prices.get(validity, 0)
+		total_amount = int(persons) * int(number_meals) * int(price)
+		temporary_calorie_value = 1400  # Связать логику Dish и Subscription
+		try:
+			type_dish = Category.objects.get(title=type_food)
+			order, created = Subscription.objects.get_or_create(
+				title=f'{type_food} на {validity}',
+				description=description,
+				persons=persons,
+				calories=temporary_calorie_value,
+				number_meals=number_meals,
+				price=total_amount,
+				type_dish=type_dish,
+				# promo_code=promo_code,
+			)
+			if allergies:
+				allergies_objects = Allergy.objects.filter(id__in=allergies)
+				order.allergy.set(allergies_objects)
+			if created:
+				pass  # TODO Заглушка для вывода окна об успешной подписке!
+		except (DatabaseError, OperationalError) as e:
+			return JsonResponse({'error': str(e)}, status=500)
 	return render(request, 'order.html')
 
 
