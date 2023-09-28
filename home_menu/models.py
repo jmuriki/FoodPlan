@@ -53,7 +53,7 @@ class Allergy(models.Model):
 
 
 class Customer(models.Model):
-    user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE)
+    user = models.OneToOneField(User, verbose_name='Пользователь', on_delete=models.CASCADE)
     promo_code = models.ManyToManyField('PromotionalCode', verbose_name='Промо-код', blank=True)
     image = models.ImageField('Фото')
 
@@ -62,7 +62,7 @@ class Customer(models.Model):
         verbose_name_plural = 'Клиенты'
 
     def __str__(self):
-        return self.user.first_name
+        return self.user.username
 
 
 class PromotionalCode(models.Model):
