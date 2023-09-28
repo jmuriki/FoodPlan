@@ -1,5 +1,6 @@
 import random
 import smtplib
+import textwrap
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -134,19 +135,25 @@ def recover_password(request, context={}):
 
 		try:
 			user = User.objects.get(username=receiver_email)
-			new_password = random.randint(100000, 999999)
-			user.set_password(f"{new_password}")
-			user.save()
-			text = f"""Здравствуйте!
-			Ваш новый пароль: {new_password}.
-			Пожалуйста, поменяйте его на более надёжный как можно скорее.
-			"""
-			send_email(receiver_email, "Восстановление пароля FoodPlan", text)
-			context['message'] = 'Новый пароль отправлен на указанный email.'
-			return render(request, 'auth.html', context)
 		except User.DoesNotExist:
 			context['error'] = 'Данный email не зарегистрирован в системе.'
 			return render(request, 'recovery.html', context)
+
+		new_password = random.randint(100000, 999999)
+		user.set_password(f"{new_password}")
+		user.save()
+		text = f"""Здравствуйте! Ваш новый пароль: {new_password}.
+			Пожалуйста, поменяйте его на более надёжный как можно скорее."""
+		formatted_text = textwrap.fill(text, 48)
+
+		try:
+			send_email(receiver_email, "Восстановление пароля FoodPlan", formatted_text)
+			context['message'] = 'Новый пароль отправлен на указанный email.'
+		except Exception as error:
+			print('Ошибка при отправке почты:', str(error))
+
+		return render(request, 'auth.html', context)
+
 	else:
 		context['error'] = 'Ошибка: неверный тип запроса.'
 		return render(request, 'recovery.html', context)
@@ -156,7 +163,7 @@ def send_email(receiver_email, subject, text):
 	sender_email = settings.SENDER_EMAIL
 	sender_password = settings.SENDER_PASSWORD
 
-	smtp_server = 'smtp.yandex.com'
+	smtp_server = 'smtp.yandex.ru'
 	smtp_port = 587
 
 	message = MIMEMultipart()
@@ -166,15 +173,11 @@ def send_email(receiver_email, subject, text):
 
 	message.attach(MIMEText(text, 'plain'))
 
-	try:
-		server = smtplib.SMTP(smtp_server, smtp_port)
-		server.starttls()
-		server.login(sender_email, sender_password)
-		server.sendmail(sender_email, receiver_email, message.as_string())
-		server.quit()
-		print('Пароль успешно отправлен на адрес', receiver_email)
-	except Exception as e:
-		print('Ошибка при отправке почты:', str(e))
+	server = smtplib.SMTP(smtp_server, smtp_port)
+	server.starttls()
+	server.login(sender_email, sender_password)
+	server.sendmail(sender_email, receiver_email, message.as_string())
+	server.quit()
 
 
 def change_info(request, context={}):
