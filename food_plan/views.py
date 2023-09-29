@@ -162,7 +162,7 @@ def checkout(request):
 	)
 
 	request.session.clear()
-	# return redirect('pay')
+	return redirect('pay')
 
 
 def pay(request):
