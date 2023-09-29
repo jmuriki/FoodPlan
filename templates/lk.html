@@ -36,9 +36,19 @@
                     
                     <div class="card col-12 col-md-2 p-3 mb-3 d-flex flex-column align-items-center foodplan__shadow">
                         <div class="position-relative">
-                            <img src="{% static 'img/test_avatar.png' %}" alt="" width="100" height="100" class="rounded-pill">
-                            <span class="badge rounded-circle position-absolute bottom-0 end-0 foodplan__bg_green avatar__plus"><a href="#"
-                                    class="link-dark text-decoration-none align-middle">+</a></span>
+                            {% if user.customer.image %}
+                                <img src="{{ user.customer.image.url }}" alt="" width="100" height="100" class="rounded-pill">
+                            {% else %}
+                                <img src="{% static 'img/test_avatar.png' %}" alt="" width="100" height="100" class="rounded-pill">
+                            {% endif %}
+
+                            <form method="post" enctype="multipart/form-data" action="">
+                                {% csrf_token %}
+                                <label for="photo_upload" class="badge rounded-circle position-absolute bottom-0 end-0 foodplan__bg_green avatar__plus">
+                                    <input type="file" name="image" id="photo_upload" style="display:none;" onchange="this.form.submit()">
+                                    +
+                                </label>
+                            </form>
                         </div>
                         <h3 class="card-title text-center">{{ first_name }}</h3>
                         <div class="d-block">
