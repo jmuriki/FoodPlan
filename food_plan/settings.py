@@ -20,6 +20,10 @@ DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 
+SHOP_KEY = env.str('SHOP_KEY', default='')
+SHOP_SECRET_KEY = env.str('SHOP_SECRET_KEY', default='')
+URL = env.str('URL', default='')
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
