@@ -1,6 +1,7 @@
 import random
 import smtplib
 import textwrap
+
 from functools import wraps
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -15,6 +16,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
+from home_menu.forms import PhotoUploadForm
 from home_menu.models import (
 	Subscription,
 	Dish,
@@ -45,12 +47,31 @@ def show_recovery(request):
 
 
 @login_required
-def show_lk(request, context={}):
-	user_id = request.user.id
-	customer = Customer.objects.get(user=user_id)
-	context['first_name'] = request.user.first_name
-	context['email'] = request.user.email
-	return render(request, 'lk.html', context)
+def show_lk(request):
+    user = request.user
+    context = {
+        'first_name': user.first_name,
+        'email': user.email,
+        'user': user,
+    }
+
+    try:
+        customer = Customer.objects.get(user=user)
+    except Customer.DoesNotExist:
+        customer = None
+
+    if request.method == 'POST':
+        form = PhotoUploadForm(request.POST, request.FILES, instance=customer)
+        if form.is_valid():
+            if customer:
+                form.instance = customer
+            else:
+                form.instance = Customer(user=user)
+
+            form.save()
+            return redirect('lk')
+
+    return render(request, 'lk.html', context)
 
 
 def show_card(request, card_id):
