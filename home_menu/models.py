@@ -78,6 +78,7 @@ class PromotionalCode(models.Model):
 
 
 class Subscription(models.Model):
+    customer = models.ForeignKey('Customer', verbose_name='Клиент', related_name='subscriptions', on_delete=models.CASCADE)
     title = models.CharField('Название', max_length=50)
     description = models.TextField('Описание')
     persons = models.PositiveIntegerField('Количество персон', validators=[MaxValueValidator(6)])
