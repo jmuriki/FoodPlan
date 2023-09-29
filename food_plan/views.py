@@ -18,6 +18,7 @@ from django.contrib.auth import authenticate, login, logout
 
 from home_menu.forms import PhotoUploadForm
 from home_menu.models import (
+	Customer,
 	Subscription,
 	Dish,
 	Subscription,
@@ -148,7 +149,7 @@ def save_to_cookies(request, key, payload):
 def checkout(request):
 	context={}
 	if request.method == 'POST':
-		request.session.clear()
+		# request.session.clear()
 		for name, value in request.POST.items():
 			save_to_cookies(request, name, value)
 		del request.session['csrfmiddlewaretoken']
@@ -177,12 +178,11 @@ def checkout(request):
 	# allergy5 = request.session.get('allergy5')
 	# allergy6 = request.session.get('allergy6')
 	# promo_code = request.session.get('promo_code')
-	subscription = Subscription.objects.create(
-		customer=customer,
-		# TODO перечислить поля и значения
-	)
-
-	request.session.clear()
+	# subscription = Subscription.objects.create(
+	# 	customer=customer,
+	# 	# TODO перечислить поля и значения
+	# )
+	del request.session['checkout']
 	return redirect('pay')
 
 
