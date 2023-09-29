@@ -9,7 +9,7 @@
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/ico">
     <link rel="stylesheet" href="{% static 'style.css' %}">
-    <title>Foodplan 2021 - Меню на неделю FOODPLAN</title>
+    <title>Foodplan 2023 - Меню на неделю FOODPLAN</title>
 </head>
 <body>
     <header>
@@ -28,7 +28,7 @@
             <div class="container">
                 <h1><strong class="foodplan_green">1 шаг </strong>до первого меню</h1>
                 <h5 class="text-secondary mb-3">Вам будет доступно 4 типа меню: Классическое, Низкоуглеводное, Вегетарианское и Кето.</h5>
-                <form id="order" method="post">
+                <form id="order" method="post" action="{% url 'checkout' %}">
                     {% csrf_token %}
                     <div class="row mb-5">
                         <div class="col-6 col-md-3">
@@ -70,10 +70,10 @@
                                 <th scope="row" class="text-start">Срок</th>
                                 <td>
                                     <select name="select" class="form-select">
-                                        <option value="1 мес." selected>1 мес.</option>
-                                        <option value="3 мес.">3 мес.</option>
-                                        <option value="6 мес.">6 мес.</option>
-                                        <option value="12 мес.">12 мес.</option>
+                                        <option value="1" selected>1 мес.</option>
+                                        <option value="3">3 мес.</option>
+                                        <option value="6">6 мес.</option>
+                                        <option value="12">12 мес.</option>
                                     </select>
                                 </td>
                             </tr>
@@ -171,7 +171,7 @@
                     </table>
                     <button type="submit" id="TableSubmit" class="d-none"></button>
                 </form>
-                <form class="card d-flex flex-row align-items-baseline mb-5 p-3 foodplan__bg_grey">
+                <form id="order" method="post" action="{% url 'checkout' %}" class="card d-flex flex-row align-items-baseline mb-5 p-3 foodplan__bg_grey">
                     <label for="exampleInputPassword1" class="form-label me-2">Промокод</label>
                     <input type="password" class="form-control me-2" id="password" name="promo_code">
                     <button type="submit" class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Применить</button>

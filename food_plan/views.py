@@ -2,7 +2,7 @@ import random
 import smtplib
 import textwrap
 
-from home_menu.forms import PhotoUploadForm
+from functools import wraps
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -16,10 +16,16 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
-from home_menu.models import Customer
-
-from functools import wraps
-from home_menu.models import Dish, Subscription, Category, Allergy
+from home_menu.forms import PhotoUploadForm
+from home_menu.models import (
+	Customer,
+	Subscription,
+	Dish,
+	Subscription,
+	Category,
+	Allergy,
+	PromotionalCode,
+)
 
 
 def show_index(request):
@@ -132,17 +138,64 @@ def show_terms_of_use(request):
 	return render(request, 'terms.html')
 
 
-@login_required
+def save_to_cookies(request, key, payload):
+    request.session[key] = payload
+    request.session.modified = True
+    response = HttpResponse("Your choice was saved as a cookie!")
+    response.set_cookie('session_id', request.session.session_key)
+    return response
+
+
+def checkout(request):
+	context={}
+	if request.method == 'POST':
+		# request.session.clear()
+		for name, value in request.POST.items():
+			save_to_cookies(request, name, value)
+		del request.session['csrfmiddlewaretoken']
+		save_to_cookies(request, 'checkout', True)
+	elif request.session.get('checkout'):
+		pass
+	else:
+		context['error'] = 'Ошибка: неверный тип запроса.'
+		return render(request, 'order.html', context)
+
+	if str(request.user) == "AnonymousUser":
+		return redirect('authentication')
+
+	customer = Customer.objects.get(user=request.user)
+	# foodtype = request.session.get('foodtype')
+	# period_length = request.session.get('select')
+	# if_breakfast = request.session.get('select1')
+	# if_lunch = request.session.get('select2')
+	# if_dinner = request.session.get('select3')
+	# if_dessert = request.session.get('select4')
+	# num_persons = request.session.get('select5')
+	# allergy1 = request.session.get('allergy1')
+	# allergy2 = request.session.get('allergy2')
+	# allergy3 = request.session.get('allergy3')
+	# allergy4 = request.session.get('allergy4')
+	# allergy5 = request.session.get('allergy5')
+	# allergy6 = request.session.get('allergy6')
+	# promo_code = request.session.get('promo_code')
+	# subscription = Subscription.objects.create(
+	# 	customer=customer,
+	# 	# TODO перечислить поля и значения
+	# )
+	del request.session['checkout']
+	return redirect('pay')
+
+
 def pay(request):
 	return render(request, 'pay.html')
 
 
 def sign_up(request, context={}):
 	if request.method == 'POST':
-		name = request.POST['name']
-		email = request.POST['email']
-		password = request.POST['password']
-		password_confirm = request.POST['PasswordConfirm']
+		name = request.POST.get('name')
+		email = request.POST.get('email')
+		password = request.POST.get('password')
+		password_confirm = request.POST.get('PasswordConfirm')
 
 		if User.objects.filter(email=email).exists():
 			context['error'] = """Такой пользователь уже зарегистрирован.
@@ -160,7 +213,10 @@ def sign_up(request, context={}):
 				user=user,
 			)
 			login(request, user)
-			return redirect('lk')
+			if request.session.get('checkout'):
+				return redirect('checkout')
+			else:
+				return redirect('lk')
 		else:
 			context['error'] = """Пароли не совпадают.
 			Пожалуйста, попробуйте снова."""
@@ -179,7 +235,10 @@ def sign_in(request, context={}):
 
 		if user is not None:
 			auth.login(request, user)
-			return redirect('lk')
+			if request.session.get('checkout'):
+				return redirect('checkout')
+			else:
+				return redirect('lk')
 		else:
 			context['error'] = 'Неверный логин или пароль'
 			return render(request, 'auth.html', context)
