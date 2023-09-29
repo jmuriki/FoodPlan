@@ -60,46 +60,47 @@
                     </div>
 
                     <div class="card col-12 col-md-10 p-3 mb-3 foodplan__shadow">
-                            <ul class="nav nav-tabs">
-                                <li class="nav-item foodplan__tab-item">
-                                    <button id="tab1" class="btn shadow-none foodplan__tab-button active" data-bs-toggle="tab" data-bs-target="#data">Персональные данные</button>
-                                </li>
-                                <li class="nav-item foodplan__tab-item">
-                                    <button id="tab2" class="btn shadow-none foodplan__tab-button" data-bs-toggle="tab" data-bs-target="#menu">Моё меню</button>
-                                </li>
-                                <li class="nav-item foodplan__tab-item flex-grow-1"></li>
-                            </ul>
-                            <div class="tab-content mt-2">
-                                <div class="tab-pane fade show active" id="data">
-                                    <form method="post" action="{% url 'change_info' %}">
-                                        {% csrf_token %}
-                                        <div class="mb-3">
-                                            <div class="d-flex align-items-center justify-content-between">
-                                                <label for="exampleInputEmail1" class="form-label">Имя</label>
-                                            </div>
-                                            <input type="text" class="form-control" id="name" name="name" value="{{ first_name }}">
+                        <ul class="nav nav-tabs">
+                            <li class="nav-item foodplan__tab-item">
+                                <button id="tab1" class="btn shadow-none foodplan__tab-button active" data-bs-toggle="tab" data-bs-target="#data">Персональные данные</button>
+                            </li>
+                            <li class="nav-item foodplan__tab-item">
+                                <button id="tab2" class="btn shadow-none foodplan__tab-button" data-bs-toggle="tab" data-bs-target="#menu">Моё меню</button>
+                            </li>
+                            <li class="nav-item foodplan__tab-item flex-grow-1"></li>
+                        </ul>
+                        <div class="tab-content mt-2">
+                            <div class="tab-pane fade show active" id="data">
+                                <form method="post" action="{% url 'change_info' %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label for="exampleInputEmail1" class="form-label">Имя</label>
                                         </div>
-                                        <div class="mb-3">
-                                            <label for="exampleInputEmail1" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" value="{{ email }}">
+                                        <input type="text" class="form-control" id="name" name="name" value="{{ first_name }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="exampleInputEmail1" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" value="{{ email }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label for="exampleInputPassword1" class="form-label">Пароль</label>
                                         </div>
-                                        <div class="mb-3">
-                                            <div class="d-flex align-items-center justify-content-between">
-                                                <label for="exampleInputPassword1" class="form-label">Пароль</label>
-                                            </div>
-                                            <input type="password" class="form-control" id="password" name="password">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="exampleInputPassword1" class="form-label">Подтверждение пароля</label>
-                                            <input type="password" class="form-control" id="PasswordConfirm" name="PasswordConfirm">
-                                        </div>
-                                        <div class="d-block">
-                                            <button type="submit" class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Сохранить
-                                                изменения</button>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="tab-pane fade" id="menu">
+                                        <input type="password" class="form-control" id="password" name="password">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="exampleInputPassword1" class="form-label">Подтверждение пароля</label>
+                                        <input type="password" class="form-control" id="PasswordConfirm" name="PasswordConfirm">
+                                    </div>
+                                    <div class="d-block">
+                                        <button type="submit" class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Сохранить
+                                            изменения</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="menu">
+                                {% for subscription in subscriptions %}
                                     <div class="row">
                                         <div class="col-2">
                                             <img src="{% static 'img/circle1.png' %}" alt="" class="w-100">
@@ -107,37 +108,35 @@
                                         <div class="col-10 col-md-10">
                                             <div class="row">
                                                 <div class="col-12">
-                                                    <h2>Название подписки</h2>
+                                                    <h2>{{ subscription.title }}</h2>
                                                 </div>
                                                 <div class="col-md-12 col-lg-9">
-                                                    <h6>Описание подписки Lorem ipsum dolor sit, amet consectetur adipisicing elit. Eius saepe ea nobis necessitatibus
-                                                        consectetur rem! Eligendi assumenda facere sint quibusdam dolorem quasi doloribus nemo, temporibus molestiae
-                                                        distinctio cum laboriosam sed. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Eius saepe ea nobis
-                                                        necessitatibus consectetur rem! Eligendi
-                                                        assumenda facere sint quibusdam dolorem quasi doloribus nemo, temporibus molestiae distinctio cum laboriosam
-                                                        sed.</h6>
+                                                    <h6>{{ subscription.description }}</h6>
                                                 </div>
                                                 <div class="col-md-12 col-lg-3 text-muted d-flex flex-column justify-content-between">
                                                     <div class="d-flex flex-row justify-content-between">
-                                                        <small>Персоны: </small><small>3</small>
+                                                        <small>Персоны: </small><small>{{ subscription.persons }}</small>
                                                     </div>
                                                     <div class="d-flex flex-row justify-content-between">
-                                                        <small>Аллергии: </small><small>нет</small>
+                                                        <small>Аллергии:
+                                                            {% for allergy in subscription.allergy.all %}
+                                                                <small>{{ allergy }}</small>
+                                                            {% endfor %}
+                                                        </small>
                                                     </div>
                                                     <div class="d-flex flex-row justify-content-between">
-                                                        <small>Калории: </small><small>1400</small>
+                                                        <small>Калории: </small><small>{{ subscription.calories }}</small>
                                                     </div>
                                                     <div class="d-flex flex-row justify-content-between">
-                                                        <small>Кол-во приёмов пищи: </small><small>4</small>
+                                                        <small>Кол-во приёмов пищи: </small><small>{{ subscription.number_meals }}</small>
                                                     </div>
-                                                    
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                {% endfor %}
                             </div>
-                            
+                        </div>
                     </div>
                 </div>
             </div>
