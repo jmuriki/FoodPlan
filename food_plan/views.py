@@ -18,6 +18,7 @@ from django.contrib.auth import authenticate, login, logout
 
 from home_menu.forms import PhotoUploadForm
 from home_menu.models import (
+	Customer,
 	Subscription,
 	Dish,
 	Subscription,
