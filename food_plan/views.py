@@ -15,7 +15,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.db import DatabaseError, OperationalError
 from django.shortcuts import render, redirect
 
@@ -190,97 +190,81 @@ def create_subscription(request):
         del request.session['checkout']
 
         if created:
+            request.session['subscription_id'] = order.id
             return total_amount
 
     except (DatabaseError, OperationalError) as e:
         return JsonResponse({'error': str(e)}, status=500)
 
 
-
 @login_required
 def pay(request):
-	total_amount = request.session.get('total_amount')
-	Configuration.configure(SHOP_KEY, SHOP_SECRET_KEY)
-	payment = Payment.create({
-		"amount": {
-			"value": 1000,
-		"currency": "RUB"
-	},
-		"payment_method_data": {
-		"type": "bank_card"
-	},
-	"confirmation": {
-		"type": "redirect",
-		"return_url": URL
-	},
-	"metadata": {
-		"user_id": 15,
-		"subscription_id": 120,
-	},
-	"capture": True,
-	"description": 'Оплата подписки'
-	})
-	return HttpResponseRedirect(payment.confirmation.confirmation_url)
-	# return render(request, 'pay.html')
+    total_amount = request.session.get('total_amount')
+    customer_id = Customer.objects.get(user=request.user).id
+    subscription_id = request.session.get('subscription_id')
+    Configuration.configure(SHOP_KEY, SHOP_SECRET_KEY)
+    payment = Payment.create({
+        "amount": {
+            "value": total_amount,
+            "currency": "RUB"
+        },
+        "payment_method_data": {
+            "type": "bank_card"
+        },
+        "confirmation": {
+            "type": "redirect",
+            "return_url": URL
+        },
+        "metadata": {
+            "customer_id": customer_id,
+            "subscription_id": subscription_id,
+        },
+        "capture": True,
+        "description": 'Оплата подписки'
+    })
+    return HttpResponseRedirect(payment.confirmation.confirmation_url)
 
 
 @csrf_exempt
 def status_pay(request):
-	event_json = json.loads(request.body)
-	try:
-		# Создание объекта класса уведомлений в зависимости от события
-		notification_object = WebhookNotificationFactory().create(event_json)
-		response_object = notification_object.object
-		if notification_object.event == WebhookNotificationEventType.PAYMENT_SUCCEEDED:
-			some_data = {
-				'paymentId': response_object.id,
-				'paymentStatus': response_object.status,
-			}
-			# metadata = response_object.json()['metadata']
-			# print(metadata)
-			# user_id = metadata['user_id']
-			# subscription_id = metadata['subscription_id']
-			# print(user_id, subscription_id)
-			# if response_object.json()['metadata']:
-			# 	print(response_object.json()['metadata'])
+    event_json = json.loads(request.body)
+    try:
+        # Создание объекта класса уведомлений в зависимости от события
+        notification_object = WebhookNotificationFactory().create(event_json)
+        response_object = notification_object.object
+        if notification_object.event == WebhookNotificationEventType.PAYMENT_SUCCEEDED:
+            some_data = {
+                'paymentId': response_object.id,
+                'paymentStatus': response_object.status,
+            }
+            metadata = event_json['object']['metadata']
+            customer_id = metadata["customer_id"]
+            subscription_id = metadata["subscription_id"]
+        elif notification_object.event == WebhookNotificationEventType.PAYMENT_CANCELED:
+            some_data = {
+                'paymentId': response_object.id,
+                'paymentStatus': response_object.status,
+            }
+        # Специфичная логика
+        else:
+            # Обработка ошибок
+            return HttpResponse(status=400)  # Сообщаем кассе об ошибке
 
-			print('PAYMENT_SUCCEEDED')
-		# Специфичная логика
-		# ...
-		elif notification_object.event == WebhookNotificationEventType.PAYMENT_CANCELED:
-			some_data = {
-				'paymentId': response_object.id,
-				'paymentStatus': response_object.status,
-			}
-			print('PAYMENT_CANCELED')
-		# Специфичная логика
-		# ...
-		elif notification_object.event == WebhookNotificationEventType.DEAL_CLOSED:
-			some_data = {
-				'dealId': response_object.id,
-				'dealStatus': response_object.status,
-			}
-		# Специфичная логика
-		else:
-			# Обработка ошибок
-			return HttpResponse(status=400)  # Сообщаем кассе об ошибке
+        Configuration.configure(SHOP_KEY, SHOP_SECRET_KEY)
+        # Получим актуальную информацию о платеже
+        payment_info = Payment.find_one(some_data['paymentId'])
+        if payment_info:
+            payment_status = payment_info.status
+        # Специфичная логика
+        # ...
+        else:
+            # Обработка ошибок
+            return HttpResponse(status=400)  # Сообщаем кассе об ошибке
 
-		Configuration.configure(SHOP_KEY, SHOP_SECRET_KEY)
-		# Получим актуальную информацию о платеже
-		payment_info = Payment.find_one(some_data['paymentId'])
-		if payment_info:
-			payment_status = payment_info.status
-			print(f'{payment_status=}')
-		# Специфичная логика
-		# ...
-		else:
-			# Обработка ошибок
-			return HttpResponse(status=400)  # Сообщаем кассе об ошибке
-
-	except Exception:
-		# Обработка ошибок
-		return HttpResponse(status=400)  # Сообщаем кассе об ошибке
-	return HttpResponse(status=200)  # Сообщаем кассе, что все хорошо
+    except Exception:
+        # Обработка ошибок
+        return HttpResponse(status=400)  # Сообщаем кассе об ошибке
+    return HttpResponse(status=200)  # Сообщаем кассе, что все хорошо
 
 
 def sign_up(request):
