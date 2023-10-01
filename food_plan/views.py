@@ -2,7 +2,6 @@ import random
 import smtplib
 import textwrap
 
-from functools import wraps
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -14,12 +13,11 @@ from django.shortcuts import render, redirect
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 
 from home_menu.forms import PhotoUploadForm
 from home_menu.models import (
     Customer,
-    Subscription,
     Dish,
     Subscription,
     Category,
@@ -58,12 +56,7 @@ def show_recovery(request):
 @login_required
 def show_lk(request):
     user = request.user
-
-    try:
-        customer = Customer.objects.get(user=user)
-    except Customer.DoesNotExist:
-        customer = None
-
+    customer, _ = Customer.objects.get_or_create(user=user)
     subscriptions = Subscription.objects.filter(customer=customer)
 
     context = {
@@ -76,11 +69,7 @@ def show_lk(request):
     if request.method == 'POST':
         form = PhotoUploadForm(request.POST, request.FILES, instance=customer)
         if form.is_valid():
-            if customer:
-                form.instance = customer
-            else:
-                form.instance = Customer(user=user)
-
+            form.instance = customer
             form.save()
             return redirect('lk')
 
@@ -89,7 +78,9 @@ def show_lk(request):
 
 def show_card(request, card_id):
     card_item = Dish.objects.filter(id=card_id)
-    total_calories = sum([product.weight for dish in card_item for product in dish.product.all()])
+    total_calories = sum(
+        [product.weight for dish in card_item for product in dish.product.all()]
+    )
     return render(request, 'card.html', context={
         'card_item': card_item,
         'total_calories': total_calories
@@ -141,10 +132,21 @@ def checkout(request):
 def create_subscription(request):
     customer = Customer.objects.get(user=request.user)
     persons = request.session.get('select5')
-    number_meals = sum([int(request.session.get(f'select{i}', 0)) for i in range(1, 5)])
+    number_meals = sum(
+        [int(request.session.get(f'select{i}', 0)) for i in range(1, 5)]
+    )
     type_food = request.session.get('foodtype')
-    allergy_keys = ['allergy1', 'allergy2', 'allergy3', 'allergy4', 'allergy5', 'allergy6']
-    allergies = [request.session.get(key) for key in allergy_keys if request.session.get(key)]
+    allergy_keys = [
+        'allergy1',
+        'allergy2',
+        'allergy3',
+        'allergy4',
+        'allergy5',
+        'allergy6',
+    ]
+    allergies = [
+        request.session.get(key) for key in allergy_keys if request.session.get(key)
+    ]
     validity = request.session.get('select')
     prices = {
         '1 мес.': settings.ONE_MONTH_PRICE,
@@ -189,7 +191,7 @@ def create_subscription(request):
 
 
 def pay(request):
-    total_amount = request.session.get('total_amount')
+    # TODO total_amount = request.session.get('total_amount')
     return render(request, 'pay.html')
 
 
@@ -276,7 +278,11 @@ def recover_password(request):
         formatted_text = textwrap.fill(text, 48)
 
         try:
-            send_email(receiver_email, "Восстановление пароля FoodPlan", formatted_text)
+            send_email(
+                receiver_email,
+                "Восстановление пароля FoodPlan",
+                formatted_text
+            )
             context['message'] = 'Новый пароль отправлен на указанный email.'
         except Exception as error:
             print('Ошибка при отправке почты:', str(error))
