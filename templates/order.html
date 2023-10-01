@@ -184,13 +184,15 @@
     </main>
 
     <script>
-
         const tariffPrices = {
-            '1 мес.': 1000,
-            '3 мес.': 2400,
-            '6 мес.': 4200,
-            '12 мес.': 6000
+            '1 мес.': '{{one_month_price}}',
+            '3 мес.': '{{three_months_price}}',
+            '6 мес.': '{{six_months_price}}',
+            '12 мес.': '{{twelve_months_price}}'
         };
+
+        const promoCodeInput = document.getElementsByName("promo_code")[0];
+        promoCodeInput.addEventListener("input", updateTotalPrice);
 
         function updateTotalPrice() {
 
@@ -206,9 +208,6 @@
             const selectedTariff = document.querySelector('select[name="select"]');
             const selectedValue = selectedTariff.value;
             const tariffPrice = tariffPrices[selectedValue];
-
-            const personSelect = document.querySelector('select[name="select5"]');
-            const personValue = parseInt(personSelect.value);
 
             let mealTotal = 0;
             const select1 = document.querySelector("select[name='select1']");
@@ -228,9 +227,16 @@
                 mealTotal++;
             }
 
-            const discount = 0.1;
+            let discount = '{{discount}}'
+            const promoCodeInput = document.getElementsByName("promo_code")[0];
+            if (promoCodeInput) {
+                const inputValue = parseInt(promoCodeInput.value, 10)
+                if (!isNaN(inputValue)) {
+                    discount = inputValue / 100;
+                }
+            }
 
-            const totalPrice = selectedFoodtype * tariffPrice * mealTotal * personValue * (1 - discount);
+            const totalPrice = selectedFoodtype * tariffPrice * mealTotal * (1 - discount);
 
             const totalPriceElement = document.getElementById('total-price');
             totalPriceElement.textContent = totalPrice.toFixed(0) + '₽';

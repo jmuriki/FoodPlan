@@ -11,6 +11,11 @@ env.read_env()
 
 SENDER_EMAIL = env.str('SENDER_EMAIL', default=None)
 SENDER_PASSWORD = env.str('SENDER_PASSWORD', default=None)
+ONE_MONTH_PRICE = env.int('ONE_MONTH_PRICE', default=1000)
+THREE_MONTHS_PRICE = env.int('THREE_MONTHS_PRICE', default=2400)
+SIX_MONTHS_PRICE = env.int('SIX_MONTHS_PRICE', default=4200)
+TWELVE_MONTHS_PRICE = env.int('TWELVE_MONTHS_PRICE', default=6000)
+DISCOUNT = env.float('DISCOUNT', default=0.1)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
