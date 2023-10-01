@@ -97,7 +97,14 @@ def show_card(request, card_id):
 
 
 def show_order(request):
-    return render(request, 'order.html')
+    context = {
+        "one_month_price": settings.ONE_MONTH_PRICE,
+        "three_months_price": settings.THREE_MONTHS_PRICE,
+        "six_months_price": settings.SIX_MONTHS_PRICE,
+        "twelve_months_price": settings.TWELVE_MONTHS_PRICE,
+        "discount": settings.DISCOUNT,
+    }
+    return render(request, 'order.html', context)
 
 
 def show_privacy_policy(request):
@@ -140,10 +147,10 @@ def create_subscription(request):
     allergies = [request.session.get(key) for key in allergy_keys if request.session.get(key)]
     validity = request.session.get('select')
     prices = {
-        '1 мес.': 1000,
-        '3 мес.': 2750,
-        '6 мес.': 5500,
-        '12 мес.': 11000
+        '1 мес.': settings.ONE_MONTH_PRICE,
+        '3 мес.': settings.THREE_MONTHS_PRICE,
+        '6 мес.': settings.SIX_MONTHS_PRICE,
+        '12 мес.': settings.TWELVE_MONTHS_PRICE,
     }
     descriptions = {
         'Классическое': 'Вкусное и привычное сочетание блюд для тех, кто ценит традиционный вкус. Наши классические блюда подходят для всех возрастов и вкусов, идеальный выбор для тех, кто ищет знакомый вкус и удовольствие от еды.',
