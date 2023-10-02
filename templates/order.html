@@ -185,16 +185,6 @@
     </main>
 
     <script>
-        const tariffPrices = {
-            '1 мес.': '{{one_month_price}}',
-            '3 мес.': '{{three_months_price}}',
-            '6 мес.': '{{six_months_price}}',
-            '12 мес.': '{{twelve_months_price}}'
-        };
-
-        const promoCodeInput = document.getElementsByName("promo_code")[0];
-        promoCodeInput.addEventListener("input", updateTotalPrice);
-
         function updateTotalPrice() {
 
             let selectedFoodtype = 0;
@@ -204,38 +194,37 @@
                     selectedFoodtype = 1;
                     break;
                 }
-            }
+            };
+
+            const tariffPrices = {
+                '1 мес.': '{{one_month_price}}',
+                '3 мес.': '{{three_months_price}}',
+                '6 мес.': '{{six_months_price}}',
+                '12 мес.': '{{twelve_months_price}}'
+            };
 
             const selectedTariff = document.querySelector('select[name="select"]');
             const selectedValue = selectedTariff.value;
             const tariffPrice = tariffPrices[selectedValue];
 
             let mealTotal = 0;
-            const select1 = document.querySelector("select[name='select1']");
-            const select2 = document.querySelector("select[name='select2']");
-            const select3 = document.querySelector("select[name='select3']");
-            const select4 = document.querySelector("select[name='select4']");
-            if (select1.value === "1") {
-                mealTotal++;
-            }
-            if (select2.value === "1") {
-                mealTotal++;
-            }
-            if (select3.value === "1") {
-                mealTotal++;
-            }
-            if (select4.value === "1") {
-                mealTotal++;
-            }
+            const selectNames = ['select1', 'select2', 'select3', 'select4'];
+            selectNames.forEach((name) => {
+                const select = document.querySelector(`select[name='${name}']`);
+                if (select.value === "1") {
+                    mealTotal++;
+                }
+            });
 
-            let discount = '{{discount}}'
+            let discount = '{{discount}}';
             const promoCodeInput = document.getElementsByName("promo_code")[0];
+            promoCodeInput.addEventListener("input", updateTotalPrice);
             if (promoCodeInput) {
                 const inputValue = parseInt(promoCodeInput.value, 10)
                 if (!isNaN(inputValue)) {
                     discount = inputValue / 100;
                 }
-            }
+            };
 
             const totalPrice = selectedFoodtype * tariffPrice * mealTotal * (1 - discount);
 
