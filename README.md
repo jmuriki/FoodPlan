@@ -28,7 +28,18 @@ pip install -r requirements.txt
 
 - Создайте файл .env и вставьте в него следующие строки:
 ```bash
-DJANGO_DEBUG=True
+SECRET_KEY=вставьте_secret_key
+DEBUG=True
+SENDER_EMAIL=email_для_отправки_с_него_технических_сообщений_клиентам
+SENDER_PASSWORD=пароль_от_email
+ONE_MONTH_PRICE=стоимость_подписки_на_один_месяц
+THREE_MONTHS_PRICE=стоимость_подписки_на_три_месяца
+SIX_MONTHS_PRICE=стоимость_подписки_на_шесть_месяцев
+TWELVE_MONTHS_PRICE=стоимость_подписки_на_двенадцать_месяцев
+DISCOUNT=размер_скидки_по_умолчанию
+SHOP_KEY=ключ_yookassa
+SHOP_SECRET_KEY=пароль_yookassa
+REDIRECT_URL=адрес_редиректа_после_успешной_оплаты
 ```
 
 ## Цели проекта
