@@ -5,15 +5,13 @@ import textwrap
 
 from yookassa import Configuration, Payment
 from yookassa.domain.notification import WebhookNotificationFactory, WebhookNotificationEventType
-
-
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.db import DatabaseError, OperationalError
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib import auth
@@ -126,9 +124,10 @@ def checkout(request):
     if str(request.user) == "AnonymousUser":
         return redirect('authentication')
 
-    total_amount = create_subscription(request)
+    total_amount, order_id = create_subscription(request)
     if type(total_amount) is int:
         save_to_cookies(request, "total_amount", total_amount)
+        request.session['order_id'] = order_id
     else:
         redirect('order')
 
@@ -184,7 +183,7 @@ def create_subscription(request):
 
         if created:
             request.session['subscription_id'] = order.id
-            return total_amount
+            return total_amount, order.id
 
     except (DatabaseError, OperationalError) as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -222,42 +221,37 @@ def pay(request):
 def status_pay(request):
     event_json = json.loads(request.body)
     try:
-        # Создание объекта класса уведомлений в зависимости от события
         notification_object = WebhookNotificationFactory().create(event_json)
         response_object = notification_object.object
         if notification_object.event == WebhookNotificationEventType.PAYMENT_SUCCEEDED:
+            order_id = request.session.get('order_id')
+            subscription = get_object_or_404(Subscription, id=order_id)
+            subscription.status = "Оплачено"
+            subscription.save()
             some_data = {
                 'paymentId': response_object.id,
                 'paymentStatus': response_object.status,
             }
-            metadata = event_json['object']['metadata']
-            customer_id = metadata["customer_id"]
-            subscription_id = metadata["subscription_id"]
         elif notification_object.event == WebhookNotificationEventType.PAYMENT_CANCELED:
             some_data = {
                 'paymentId': response_object.id,
                 'paymentStatus': response_object.status,
             }
-        # Специфичная логика
         else:
-            # Обработка ошибок
-            return HttpResponse(status=400)  # Сообщаем кассе об ошибке
+            return HttpResponse(status=400)
 
         Configuration.configure(SHOP_KEY, SHOP_SECRET_KEY)
-        # Получим актуальную информацию о платеже
         payment_info = Payment.find_one(some_data['paymentId'])
         if payment_info:
             payment_status = payment_info.status
-        # Специфичная логика
-        # ...
         else:
-            # Обработка ошибок
-            return HttpResponse(status=400)  # Сообщаем кассе об ошибке
+            return HttpResponse(status=400)
+    except json.JSONDecodeError:
+        return HttpResponse(status=400, content="Invalid JSON in request body")
+    except Exception as e:
+        return HttpResponse(status=500, content=f"An error occurred: {str(e)}")
 
-    except Exception:
-        # Обработка ошибок
-        return HttpResponse(status=400)  # Сообщаем кассе об ошибке
-    return HttpResponse(status=200)  # Сообщаем кассе, что все хорошо
+    return HttpResponse(status=200)
 
 
 def sign_up(request):

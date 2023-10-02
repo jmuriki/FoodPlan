@@ -121,6 +121,10 @@ class PromotionalCode(models.Model):
 
 
 class Subscription(models.Model):
+    class ChoicesStatus(models.TextChoices):
+        NotPaid = 'Не оплачено', 'Не оплачено'
+        Paid = 'Оплачено', 'Оплачено'
+
     customer = models.ForeignKey(
         'Customer',
         verbose_name='Клиент',
@@ -166,6 +170,12 @@ class Subscription(models.Model):
         'PromotionalCode',
         verbose_name='Промо-код',
         blank=True
+    )
+    status = models.CharField(
+        'Статус оплаты подписки',
+        max_length=50,
+        choices=ChoicesStatus.choices,
+        default=ChoicesStatus.NotPaid,
     )
 
     class Meta:
