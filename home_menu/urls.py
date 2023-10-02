@@ -1,5 +1,5 @@
 from django.urls import path
-from food_plan import views
+from home_menu import views
 
 
 urlpatterns = [
@@ -10,6 +10,7 @@ urlpatterns = [
     path('order/', views.show_order, name="order"),
     path('registration/', views.show_registration, name="registration"),
     path('checkout/', views.checkout, name="checkout"),
+    path('use_promo_code/', views.use_promo_code, name="use_promo_code"),
     path('pay/', views.pay, name="pay"),
     path('status_pay/', views.status_pay, name="status_pay"),
     path('sign_up/', views.sign_up, name="sign_up"),

@@ -172,7 +172,8 @@
                     </table>
                     <button type="submit" id="TableSubmit" class="d-none"></button>
                 </form>
-                <form id="promo_code" method="post" action="{% url 'checkout' %}" class="card d-flex flex-row align-items-baseline mb-5 p-3 foodplan__bg_grey">
+                <form id="promo_code" method="post" action="{% url 'use_promo_code' %}" class="card d-flex flex-row align-items-baseline mb-5 p-3 foodplan__bg_grey">
+                    {% csrf_token %}
                     <label for="exampleInputPassword1" class="form-label me-2">Промокод</label>
                     <input type="password" class="form-control me-2" id="password" name="promo_code">
                     <button type="submit" class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green">Применить</button>

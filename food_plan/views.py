@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 
-from food_plan.settings import SHOP_KEY, SHOP_SECRET_KEY, URL
+from food_plan.settings import SHOP_KEY, SHOP_SECRET_KEY, SHOP_REDIRECT_URL
 from home_menu.forms import PhotoUploadForm
 from home_menu.models import (
     Customer,
@@ -127,11 +127,30 @@ def checkout(request):
     total_amount, order_id = create_subscription(request)
     if type(total_amount) is int:
         save_to_cookies(request, "total_amount", total_amount)
-        request.session['order_id'] = order_id
+        save_to_cookies(request, "order_id", order_id)
     else:
         redirect('order')
 
     return redirect('pay')
+
+
+def use_promo_code(request):
+    promo_codes = {} # TODO Promocode model
+    promo_code = None
+    if request.method == 'POST':
+        promo_code = request.POST.get('promo_code')
+    if promo_code and promo_codes.get(promo_code):
+        discount = promo_codes.get(promo_code)
+    else:
+        discount = settings.DISCOUNT
+    context = {
+        "one_month_price": settings.ONE_MONTH_PRICE,
+        "three_months_price": settings.THREE_MONTHS_PRICE,
+        "six_months_price": settings.SIX_MONTHS_PRICE,
+        "twelve_months_price": settings.TWELVE_MONTHS_PRICE,
+        "discount": discount,
+    }
+    return render(request, 'order.html', context)
 
 
 def create_subscription(request):
@@ -205,7 +224,7 @@ def pay(request):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": URL
+            "return_url": SHOP_REDIRECT_URL
         },
         "metadata": {
             "customer_id": customer_id,
@@ -215,6 +234,15 @@ def pay(request):
         "description": 'Оплата подписки'
     })
     return HttpResponseRedirect(payment.confirmation.confirmation_url)
+
+
+def check_payment(request):
+    order_id = request.session.get('order_id')
+    if order_id:
+        subscription = get_object_or_404(Subscription, id=order_id)
+        subscription.status = "Оплачено"
+        subscription.save()
+    return redirect('lk')
 
 
 @csrf_exempt
