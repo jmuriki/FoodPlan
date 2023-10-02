@@ -16,6 +16,9 @@ THREE_MONTHS_PRICE = env.int('THREE_MONTHS_PRICE', default=2400)
 SIX_MONTHS_PRICE = env.int('SIX_MONTHS_PRICE', default=4200)
 TWELVE_MONTHS_PRICE = env.int('TWELVE_MONTHS_PRICE', default=6000)
 DISCOUNT = env.float('DISCOUNT', default=0.1)
+SHOP_KEY = env.str('SHOP_KEY', default='')
+SHOP_SECRET_KEY = env.str('SHOP_SECRET_KEY', default='')
+URL = env.str('REDIRECT_URL', default='')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,11 +27,6 @@ SECRET_KEY = env.str('SECRET_KEY', default=get_random_secret_key())
 DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
-
-SHOP_KEY = env.str('SHOP_KEY', default='')
-SHOP_SECRET_KEY = env.str('SHOP_SECRET_KEY', default='')
-URL = env.str('URL', default='')
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
