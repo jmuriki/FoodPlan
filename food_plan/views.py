@@ -168,7 +168,7 @@ def create_subscription(request):
     }
     description = descriptions.get(type_food)
     price = prices.get(validity, 0)
-    total_amount = int(persons) * int(number_meals) * int(price)
+    total_amount = request.session.get('total_amount')
     temporary_calorie_value = 1400  # Связать логику Dish и Subscription
     try:
         type_dish = Category.objects.get(title=type_food)
