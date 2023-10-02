@@ -1,16 +1,11 @@
+import json
 import random
 import smtplib
 import textwrap
 
-from django.views.decorators.csrf import csrf_exempt
 from yookassa import Configuration, Payment
-import json
-
 from yookassa.domain.notification import WebhookNotificationFactory, WebhookNotificationEventType
-from functools import wraps
 
-from food_plan.settings import SHOP_KEY, SHOP_SECRET_KEY, URL
-from home_menu.forms import PhotoUploadForm
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -19,12 +14,14 @@ from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.db import DatabaseError, OperationalError
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 
+from food_plan.settings import SHOP_KEY, SHOP_SECRET_KEY, URL
 from home_menu.forms import PhotoUploadForm
 from home_menu.models import (
     Customer,
@@ -32,7 +29,6 @@ from home_menu.models import (
     Subscription,
     Category,
     Allergy,
-    PromotionalCode,
 )
 
 
@@ -158,12 +154,6 @@ def create_subscription(request):
         request.session.get(key) for key in allergy_keys if request.session.get(key)
     ]
     validity = request.session.get('select')
-    prices = {
-        '1 мес.': settings.ONE_MONTH_PRICE,
-        '3 мес.': settings.THREE_MONTHS_PRICE,
-        '6 мес.': settings.SIX_MONTHS_PRICE,
-        '12 мес.': settings.TWELVE_MONTHS_PRICE,
-    }
     descriptions = {
         'Классическое': 'Вкусное и привычное сочетание блюд для тех, кто ценит традиционный вкус. Наши классические блюда подходят для всех возрастов и вкусов, идеальный выбор для тех, кто ищет знакомый вкус и удовольствие от еды.',
         'Низкоуглеводное': 'Забота о здоровье и фигуре начинается с того, что вы едите. Наше низкоуглеводное меню предлагает легкие и вкусные блюда, богатые белками и низким содержанием углеводов. Оно идеально подходит для тех, кто следит за своим уровнем углеводов.',
@@ -171,7 +161,6 @@ def create_subscription(request):
         'Кето': 'Для тех, кто придерживается диеты с низким содержанием углеводов и высоким содержанием жиров. Наше кето-меню предлагает богатые вкусом блюда, которые помогут вам достичь ваших целей в отношении питания, сохраняя при этом уровень углеводов на минимальном уровне.'
     }
     description = descriptions.get(type_food)
-    price = prices.get(validity, 0)
     total_amount = request.session.get('total_amount')
     temporary_calorie_value = 1400  # Связать логику Dish и Subscription
     try:
@@ -185,7 +174,7 @@ def create_subscription(request):
             number_meals=number_meals,
             price=total_amount,
             type_dish=type_dish,
-            # promo_code=promo_code,
+            # TODO promo_code=promo_code,
         )
         if allergies:
             allergies_objects = Allergy.objects.filter(id__in=allergies)
@@ -309,44 +298,44 @@ def sign_up(request):
 
 
 def sign_in(request, context={}):
-	if request.method == 'POST':
-		email = request.POST.get('email')
-		password = request.POST.get('password')
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
 
-		user = auth.authenticate(username=email, password=password)
+        user = auth.authenticate(username=email, password=password)
 
-		if user is not None:
-			auth.login(request, user)
-			return redirect('lk')
-		else:
-			context['error'] = 'Неверный логин или пароль'
-			return render(request, 'auth.html', context)
-	else:
-		context['error'] = 'Ошибка: неверный тип запроса.'
-		return render(request, 'auth.html', context)
+        if user is not None:
+            auth.login(request, user)
+            return redirect('lk')
+        else:
+            context['error'] = 'Неверный логин или пароль'
+            return render(request, 'auth.html', context)
+    else:
+        context['error'] = 'Ошибка: неверный тип запроса.'
+        return render(request, 'auth.html', context)
 
 
 def sign_out(request):
-	logout(request)
-	return redirect('main_page')
+    logout(request)
+    return redirect('main_page')
 
 
 def recover_password(request, context={}):
-	if request.method == 'POST':
-		receiver_email = request.POST.get('email')
+    if request.method == 'POST':
+        receiver_email = request.POST.get('email')
 
-		try:
-			user = User.objects.get(username=receiver_email)
-		except User.DoesNotExist:
-			context['error'] = 'Данный email не зарегистрирован в системе.'
-			return render(request, 'recovery.html', context)
+        try:
+            user = User.objects.get(username=receiver_email)
+        except User.DoesNotExist:
+            context['error'] = 'Данный email не зарегистрирован в системе.'
+            return render(request, 'recovery.html', context)
 
-		new_password = random.randint(100000, 999999)
-		user.set_password(f"{new_password}")
-		user.save()
-		text = f"""Здравствуйте! Ваш новый пароль: {new_password}.
-			Пожалуйста, поменяйте его на более надёжный как можно скорее."""
-		formatted_text = textwrap.fill(text, 48)
+        new_password = random.randint(100000, 999999)
+        user.set_password(f"{new_password}")
+        user.save()
+        text = f"""Здравствуйте! Ваш новый пароль: {new_password}.
+            Пожалуйста, поменяйте его на более надёжный как можно скорее."""
+        formatted_text = textwrap.fill(text, 48)
 
     try:
         send_email(
@@ -358,53 +347,53 @@ def recover_password(request, context={}):
     except Exception as error:
         print('Ошибка при отправке почты:', str(error))
 
-		return render(request, 'auth.html', context)
+        return render(request, 'auth.html', context)
 
-	else:
-		context['error'] = 'Ошибка: неверный тип запроса.'
-		return render(request, 'recovery.html', context)
+    else:
+        context['error'] = 'Ошибка: неверный тип запроса.'
+        return render(request, 'recovery.html', context)
 
 
 def send_email(receiver_email, subject, text):
-	sender_email = settings.SENDER_EMAIL
-	sender_password = settings.SENDER_PASSWORD
+    sender_email = settings.SENDER_EMAIL
+    sender_password = settings.SENDER_PASSWORD
 
-	smtp_server = 'smtp.yandex.ru'
-	smtp_port = 587
+    smtp_server = 'smtp.yandex.ru'
+    smtp_port = 587
 
-	message = MIMEMultipart()
-	message['From'] = sender_email
-	message['To'] = receiver_email
-	message['Subject'] = subject
+    message = MIMEMultipart()
+    message['From'] = sender_email
+    message['To'] = receiver_email
+    message['Subject'] = subject
 
-	message.attach(MIMEText(text, 'plain'))
+    message.attach(MIMEText(text, 'plain'))
 
-	server = smtplib.SMTP(smtp_server, smtp_port)
-	server.starttls()
-	server.login(sender_email, sender_password)
-	server.sendmail(sender_email, receiver_email, message.as_string())
-	server.quit()
+    server = smtplib.SMTP(smtp_server, smtp_port)
+    server.starttls()
+    server.login(sender_email, sender_password)
+    server.sendmail(sender_email, receiver_email, message.as_string())
+    server.quit()
 
 
 def change_info(request, context={}):
-	if request.method == 'POST':
-		new_name = request.POST.get('name')
-		new_email = request.POST.get('email')
-		new_password = request.POST.get('password')
-		new_password_confirm = request.POST.get('PasswordConfirm')
+    if request.method == 'POST':
+        new_name = request.POST.get('name')
+        new_email = request.POST.get('email')
+        new_password = request.POST.get('password')
+        new_password_confirm = request.POST.get('PasswordConfirm')
 
-		user = request.user
+        user = request.user
 
-		if user.first_name != new_name:
-			user.first_name = new_name
-		if user.email != new_email:
-			user.email = new_email
-		if new_password and new_password == new_password_confirm:
-			user.set_password(new_password)
+        if user.first_name != new_name:
+            user.first_name = new_name
+        if user.email != new_email:
+            user.email = new_email
+        if new_password and new_password == new_password_confirm:
+            user.set_password(new_password)
 
-		user.save()
-		login(request, user)
-		return redirect('lk')
-	else:
-		context['error'] = 'Ошибка: неверный тип запроса.'
-		return render(request, 'lk.html', context)
+        user.save()
+        login(request, user)
+        return redirect('lk')
+    else:
+        context['error'] = 'Ошибка: неверный тип запроса.'
+        return render(request, 'lk.html', context)
