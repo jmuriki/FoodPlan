@@ -30,6 +30,7 @@
                 <h5 class="text-secondary mb-3">Вам будет доступно 4 типа меню: Классическое, Низкоуглеводное, Вегетарианское и Кето. Выберите свою идеальную тарелку.</h5>
                 <form id="order" method="post" action="{% url 'checkout' %}">
                     {% csrf_token %}
+                    <input type="hidden" name="total_amount" id="total_amount">
                     <div class="row mb-5">
                         <div class="col-6 col-md-3">
                             <label for="classic" class="position-relative" style="cursor: pointer;">
@@ -229,6 +230,9 @@
 
             const totalPriceElement = document.getElementById('total-price');
             totalPriceElement.textContent = totalPrice.toFixed(0) + '₽';
+
+            const total_amount = document.getElementById("total_amount");
+            total_amount.value = totalPrice
         }
 
         document.querySelectorAll('select[name^="select"], input[name="foodtype"]').forEach((element) => {

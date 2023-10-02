@@ -2,11 +2,21 @@ import random
 import smtplib
 import textwrap
 
+from django.views.decorators.csrf import csrf_exempt
+from yookassa import Configuration, Payment
+import json
+
+from yookassa.domain.notification import WebhookNotificationFactory, WebhookNotificationEventType
+from functools import wraps
+
+from food_plan.settings import SHOP_KEY, SHOP_SECRET_KEY, URL
+from home_menu.forms import PhotoUploadForm
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.db import DatabaseError, OperationalError
 from django.shortcuts import render, redirect
 
@@ -162,7 +172,7 @@ def create_subscription(request):
     }
     description = descriptions.get(type_food)
     price = prices.get(validity, 0)
-    total_amount = int(persons) * int(number_meals) * int(price)
+    total_amount = request.session.get('total_amount')
     temporary_calorie_value = 1400  # Связать логику Dish и Subscription
     try:
         type_dish = Category.objects.get(title=type_food)
@@ -184,15 +194,81 @@ def create_subscription(request):
         del request.session['checkout']
 
         if created:
+            request.session['subscription_id'] = order.id
             return total_amount
 
     except (DatabaseError, OperationalError) as e:
         return JsonResponse({'error': str(e)}, status=500)
 
 
+@login_required
 def pay(request):
-    # TODO total_amount = request.session.get('total_amount')
-    return render(request, 'pay.html')
+    total_amount = request.session.get('total_amount')
+    customer_id = Customer.objects.get(user=request.user).id
+    subscription_id = request.session.get('subscription_id')
+    Configuration.configure(SHOP_KEY, SHOP_SECRET_KEY)
+    payment = Payment.create({
+        "amount": {
+            "value": total_amount,
+            "currency": "RUB"
+        },
+        "payment_method_data": {
+            "type": "bank_card"
+        },
+        "confirmation": {
+            "type": "redirect",
+            "return_url": URL
+        },
+        "metadata": {
+            "customer_id": customer_id,
+            "subscription_id": subscription_id,
+        },
+        "capture": True,
+        "description": 'Оплата подписки'
+    })
+    return HttpResponseRedirect(payment.confirmation.confirmation_url)
+
+
+@csrf_exempt
+def status_pay(request):
+    event_json = json.loads(request.body)
+    try:
+        # Создание объекта класса уведомлений в зависимости от события
+        notification_object = WebhookNotificationFactory().create(event_json)
+        response_object = notification_object.object
+        if notification_object.event == WebhookNotificationEventType.PAYMENT_SUCCEEDED:
+            some_data = {
+                'paymentId': response_object.id,
+                'paymentStatus': response_object.status,
+            }
+            metadata = event_json['object']['metadata']
+            customer_id = metadata["customer_id"]
+            subscription_id = metadata["subscription_id"]
+        elif notification_object.event == WebhookNotificationEventType.PAYMENT_CANCELED:
+            some_data = {
+                'paymentId': response_object.id,
+                'paymentStatus': response_object.status,
+            }
+        # Специфичная логика
+        else:
+            # Обработка ошибок
+            return HttpResponse(status=400)  # Сообщаем кассе об ошибке
+
+        Configuration.configure(SHOP_KEY, SHOP_SECRET_KEY)
+        # Получим актуальную информацию о платеже
+        payment_info = Payment.find_one(some_data['paymentId'])
+        if payment_info:
+            payment_status = payment_info.status
+        # Специфичная логика
+        # ...
+        else:
+            # Обработка ошибок
+            return HttpResponse(status=400)  # Сообщаем кассе об ошибке
+
+    except Exception:
+        # Обработка ошибок
+        return HttpResponse(status=400)  # Сообщаем кассе об ошибке
+    return HttpResponse(status=200)  # Сообщаем кассе, что все хорошо
 
 
 def sign_up(request):
@@ -232,107 +308,103 @@ def sign_up(request):
         return render(request, 'registration.html', context)
 
 
-def sign_in(request):
-    context = {}
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+def sign_in(request, context={}):
+	if request.method == 'POST':
+		email = request.POST.get('email')
+		password = request.POST.get('password')
 
-        user = auth.authenticate(username=email, password=password)
+		user = auth.authenticate(username=email, password=password)
 
-        if user is not None:
-            auth.login(request, user)
-            if request.session.get('checkout'):
-                return redirect('checkout')
-            else:
-                return redirect('lk')
-        else:
-            context['error'] = 'Неверный логин или пароль'
-            return render(request, 'auth.html', context)
-    else:
-        context['error'] = 'Ошибка: неверный тип запроса.'
-        return render(request, 'auth.html', context)
+		if user is not None:
+			auth.login(request, user)
+			return redirect('lk')
+		else:
+			context['error'] = 'Неверный логин или пароль'
+			return render(request, 'auth.html', context)
+	else:
+		context['error'] = 'Ошибка: неверный тип запроса.'
+		return render(request, 'auth.html', context)
 
 
 def sign_out(request):
-    logout(request)
-    return redirect('main_page')
+	logout(request)
+	return redirect('main_page')
 
 
-def recover_password(request):
-    context = {}
-    if request.method == 'POST':
-        receiver_email = request.POST.get('email')
+def recover_password(request, context={}):
+	if request.method == 'POST':
+		receiver_email = request.POST.get('email')
 
-        try:
-            user = User.objects.get(username=receiver_email)
-        except User.DoesNotExist:
-            context['error'] = 'Данный email не зарегистрирован в системе.'
-            return render(request, 'recovery.html', context)
+		try:
+			user = User.objects.get(username=receiver_email)
+		except User.DoesNotExist:
+			context['error'] = 'Данный email не зарегистрирован в системе.'
+			return render(request, 'recovery.html', context)
 
-        new_password = random.randint(100000, 999999)
-        user.set_password(f"{new_password}")
-        user.save()
-        text = f"""Здравствуйте! Ваш новый пароль: {new_password}.
-            Пожалуйста, поменяйте его на более надёжный как можно скорее."""
-        formatted_text = textwrap.fill(text, 48)
+		new_password = random.randint(100000, 999999)
+		user.set_password(f"{new_password}")
+		user.save()
+		text = f"""Здравствуйте! Ваш новый пароль: {new_password}.
+			Пожалуйста, поменяйте его на более надёжный как можно скорее."""
+		formatted_text = textwrap.fill(text, 48)
 
-        try:
-            send_email(
-                receiver_email,
-                "Восстановление пароля FoodPlan",
-                formatted_text
-            )
-            context['message'] = 'Новый пароль отправлен на указанный email.'
-        except Exception as error:
-            print('Ошибка при отправке почты:', str(error))
+    try:
+        send_email(
+            receiver_email,
+            "Восстановление пароля FoodPlan",
+            formatted_text
+        )
+        context['message'] = 'Новый пароль отправлен на указанный email.'
+    except Exception as error:
+        print('Ошибка при отправке почты:', str(error))
 
-        return render(request, 'auth.html', context)
+		return render(request, 'auth.html', context)
 
-    else:
-        context['error'] = 'Ошибка: неверный тип запроса.'
-        return render(request, 'recovery.html', context)
+	else:
+		context['error'] = 'Ошибка: неверный тип запроса.'
+		return render(request, 'recovery.html', context)
 
 
 def send_email(receiver_email, subject, text):
-    sender_email = settings.SENDER_EMAIL
-    sender_password = settings.SENDER_PASSWORD
+	sender_email = settings.SENDER_EMAIL
+	sender_password = settings.SENDER_PASSWORD
 
-    smtp_server = 'smtp.yandex.ru'
-    smtp_port = 587
+	smtp_server = 'smtp.yandex.ru'
+	smtp_port = 587
 
-    message = MIMEMultipart()
-    message['From'] = sender_email
-    message['To'] = receiver_email
-    message['Subject'] = subject
+	message = MIMEMultipart()
+	message['From'] = sender_email
+	message['To'] = receiver_email
+	message['Subject'] = subject
 
-    message.attach(MIMEText(text, 'plain'))
+	message.attach(MIMEText(text, 'plain'))
 
-    server = smtplib.SMTP(smtp_server, smtp_port)
-    server.starttls()
-    server.login(sender_email, sender_password)
-    server.sendmail(sender_email, receiver_email, message.as_string())
-    server.quit()
+	server = smtplib.SMTP(smtp_server, smtp_port)
+	server.starttls()
+	server.login(sender_email, sender_password)
+	server.sendmail(sender_email, receiver_email, message.as_string())
+	server.quit()
 
 
-def change_info(request):
-    if request.method == 'POST':
-        new_name = request.POST.get('name')
-        new_email = request.POST.get('email')
-        new_password = request.POST.get('password')
-        new_password_confirm = request.POST.get('PasswordConfirm')
+def change_info(request, context={}):
+	if request.method == 'POST':
+		new_name = request.POST.get('name')
+		new_email = request.POST.get('email')
+		new_password = request.POST.get('password')
+		new_password_confirm = request.POST.get('PasswordConfirm')
 
-        user = request.user
+		user = request.user
 
-        if user.first_name != new_name:
-            user.first_name = new_name
-        if user.email != new_email:
-            user.email = new_email
-        if new_password and new_password == new_password_confirm:
-            user.set_password(new_password)
+		if user.first_name != new_name:
+			user.first_name = new_name
+		if user.email != new_email:
+			user.email = new_email
+		if new_password and new_password == new_password_confirm:
+			user.set_password(new_password)
 
-        user.save()
-        login(request, user)
-        return redirect('lk')
-    else:
-        return render(request, 'lk.html')
+		user.save()
+		login(request, user)
+		return redirect('lk')
+	else:
+		context['error'] = 'Ошибка: неверный тип запроса.'
+		return render(request, 'lk.html', context)
