@@ -197,8 +197,10 @@ def create_subscription(request):
     }
     description = descriptions.get(type_food)
     total_amount = request.session.get('total_amount')
-    temporary_calorie_value = 1400  # Связать логику Dish и Subscription
     filtered_dishes = Dish.objects.exclude(allergy__in=allergies)[:number_meals]
+    temporary_calorie_value = sum(
+        [product.weight for dish in filtered_dishes for product in dish.product.all()]
+    )
     try:
         type_dish = Category.objects.get(title=type_food)
         order, created = Subscription.objects.get_or_create(
