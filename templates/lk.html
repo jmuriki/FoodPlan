@@ -107,13 +107,13 @@
                                         </div>
                                         <div class="col-10 col-md-10">
                                             <div class="row">
-                                                <div class="col-12">
-                                                    <form id="subscription" method="POST" action="{% url 'show_subscription' %}">
+                                                <a href="/subscription/{{ subscription.id }}">
+                                                    <div class="col-12">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="subscription_id" value="{{ subscription.id }}">
                                                         <button type="submit" class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green"><h2>{{ subscription.title }}</h2></button>
-                                                    </form>
-                                                </div>
+                                                    </div>
+                                                </a>
                                                 <div class="col-md-12 col-lg-9">
                                                     <h6>{{ subscription.description }}</h6>
                                                 </div>

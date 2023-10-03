@@ -26,9 +26,32 @@
         <section>
             <div class="container">
                 <div class="row">
-
-                    {{ subscription }}
-
+                    {% for subscription in subscription_item %}
+                        {% for dish in subscription.dish.all %}
+                            <div class="col-12 col-md-4 d-flex justify-content-center">
+                                <div class="card foodplan__card_borderless">
+                                    <img src="{{ dish.image.url }}" alt="{{ dish.title }}">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-8 d-flex flex-column justify-content-between">
+                                <div class="row">
+                                    <h2>{{ dish.title }}</h2>
+                                    <div class="col-12 col-sm-6 d-flex flex-column justify-content-between">
+                                        <h6>{{ dish.description }}</h6>
+                                    </div>
+                                    <div class="col-12 col-sm-6">
+                                        <small class="link-secondary">Ингредиенты:</small>
+                                        <ul class="list-group list-group-flush">
+                                            {% for product in dish.product.all %}
+                                                <li class="list-group-item disabled"><small>{{ product.title }} ({{ product.weight }}г.)</small></li>
+                                            {% endfor %}
+                                        </ul>
+                                        <small class="link-secondary">Общая калорийность: {{ total_calories_per_dish.pop }} ккал</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
                 </div>
             </div>
         </section>

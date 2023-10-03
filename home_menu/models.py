@@ -23,6 +23,11 @@ class Dish(models.Model):
         'Product',
         verbose_name='Состав'
     )
+    allergy = models.ManyToManyField(
+        'Allergy',
+        verbose_name='Аллергия',
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'Блюдо'
@@ -176,6 +181,10 @@ class Subscription(models.Model):
         max_length=50,
         choices=ChoicesStatus.choices,
         default=ChoicesStatus.NotPaid,
+    )
+    dish = models.ManyToManyField(
+        'Dish',
+        verbose_name='Блюда',
     )
 
     class Meta:
