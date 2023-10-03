@@ -91,6 +91,13 @@ def show_card(request, card_id):
     })
 
 
+def show_subscription(request):
+    context = {}
+    if request.method == 'POST':
+        subscription_id = request.POST.get('subscription_id')
+    return render(request, 'subscription.html', context)
+
+
 def show_order(request):
     context = {
         "one_month_price": settings.ONE_MONTH_PRICE,

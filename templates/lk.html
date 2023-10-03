@@ -43,7 +43,7 @@
                                 <img src="{% static 'img/test_avatar.png' %}" alt="" width="100" height="100" class="rounded-pill">
                             {% endif %}
 
-                            <form method="post" enctype="multipart/form-data" action="">
+                            <form method="POST" enctype="multipart/form-data" action="">
                                 {% csrf_token %}
                                 <label for="photo_upload" class="badge rounded-circle position-absolute bottom-0 end-0 foodplan__bg_green avatar__plus">
                                     <input type="file" name="image" id="photo_upload" style="display:none;" onchange="this.form.submit()">
@@ -71,7 +71,7 @@
                         </ul>
                         <div class="tab-content mt-2">
                             <div class="tab-pane fade show active" id="data">
-                                <form method="post" action="{% url 'change_info' %}">
+                                <form method="POST" action="{% url 'change_info' %}">
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <div class="d-flex align-items-center justify-content-between">
@@ -108,7 +108,11 @@
                                         <div class="col-10 col-md-10">
                                             <div class="row">
                                                 <div class="col-12">
-                                                    <h2>{{ subscription.title }}</h2>
+                                                    <form id="subscription" method="POST" action="{% url 'show_subscription' %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="subscription_id" value="{{ subscription.id }}">
+                                                        <button type="submit" class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green"><h2>{{ subscription.title }}</h2></button>
+                                                    </form>
                                                 </div>
                                                 <div class="col-md-12 col-lg-9">
                                                     <h6>{{ subscription.description }}</h6>
