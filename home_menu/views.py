@@ -4,7 +4,10 @@ import smtplib
 import textwrap
 
 from yookassa import Configuration, Payment
-from yookassa.domain.notification import WebhookNotificationFactory, WebhookNotificationEventType
+from yookassa.domain.notification import (
+    WebhookNotificationFactory,
+    WebhookNotificationEventType,
+)
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -14,7 +17,6 @@ from django.db import DatabaseError, OperationalError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
-from django.db.models import Sum
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
