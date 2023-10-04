@@ -12,7 +12,6 @@ urlpatterns = [
     path('checkout/', views.checkout, name="checkout"),
     path('use_promo_code/', views.use_promo_code, name="use_promo_code"),
     path('pay/', views.pay, name="pay"),
-    path('check_payment/', views.check_payment, name="check_payment"),
     path('status_pay/', views.status_pay, name="status_pay"),
     path('sign_up/', views.sign_up, name="sign_up"),
     path('sign_in/', views.sign_in, name="sign_in"),

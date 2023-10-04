@@ -140,12 +140,13 @@ def checkout(request):
 
     if str(request.user) == "AnonymousUser":
         return redirect('authentication')
-
-    total_amount, order_id = create_subscription(request)
-    if type(total_amount) is int:
-        save_to_cookies(request, "total_amount", total_amount)
-        save_to_cookies(request, "order_id", order_id)
-    else:
+    try:
+        total_amount = create_subscription(request)
+        if type(total_amount) is int:
+            save_to_cookies(request, "total_amount", total_amount)
+        else:
+            redirect('order')
+    except:
         redirect('order')
 
     return redirect('pay')
@@ -203,7 +204,7 @@ def create_subscription(request):
     )
     try:
         type_dish = Category.objects.get(title=type_food)
-        order, created = Subscription.objects.get_or_create(
+        subscription = Subscription.objects.create(
             customer=customer,
             title=f'{type_food} на {validity}',
             description=description,
@@ -214,16 +215,15 @@ def create_subscription(request):
             type_dish=type_dish,
             # TODO promo_code=promo_code,
         )
-        order.dish.set(filtered_dishes)
+        subscription.dish.set(filtered_dishes)
         if allergies:
             allergies_objects = Allergy.objects.filter(id__in=allergies)
-            order.allergy.set(allergies_objects)
+            subscription.allergy.set(allergies_objects)
 
         del request.session['checkout']
 
-        if created:
-            request.session['subscription_id'] = order.id
-            return total_amount, order.id
+        save_to_cookies(request, 'subscription_id', subscription.id)
+        return total_amount, subscription.id
 
     except (DatabaseError, OperationalError) as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -257,15 +257,6 @@ def pay(request):
     return HttpResponseRedirect(payment.confirmation.confirmation_url)
 
 
-def check_payment(request):
-    order_id = request.session.get('order_id')
-    if order_id:
-        subscription = get_object_or_404(Subscription, id=order_id)
-        subscription.status = "Оплачено"
-        subscription.save()
-    return redirect('lk')
-
-
 @csrf_exempt
 def status_pay(request):
     event_json = json.loads(request.body)
@@ -273,8 +264,8 @@ def status_pay(request):
         notification_object = WebhookNotificationFactory().create(event_json)
         response_object = notification_object.object
         if notification_object.event == WebhookNotificationEventType.PAYMENT_SUCCEEDED:
-            order_id = request.session.get('order_id')
-            subscription = get_object_or_404(Subscription, id=order_id)
+            subscription_id = event_json['object']['metadata']['subscription_id']
+            subscription = get_object_or_404(Subscription, id=subscription_id)
             subscription.status = "Оплачено"
             subscription.save()
             some_data = {
