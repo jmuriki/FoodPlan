@@ -2,3 +2,5 @@ django==3.2.15
 django-debug-toolbar==3.2.1
 environs==9.5.0
 gunicorn==21.2.0
+Pillow==10.0.1
+yookassa==2.4.0
