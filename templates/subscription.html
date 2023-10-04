@@ -35,7 +35,9 @@
                             </div>
                             <div class="col-12 col-md-8 d-flex flex-column justify-content-between">
                                 <div class="row">
-                                    <h2>{{ dish.title }}</h2>
+                                    <a href="/card/{{ dish.id }}">
+                                        <button type="submit" class="btn shadow-none btn-outline-success foodplan_green foodplan__border_green"><h2>{{ dish.title }}</h2></button>
+                                    </a>
                                     <div class="col-12 col-sm-6 d-flex flex-column justify-content-between">
                                         <h6>{{ dish.description }}</h6>
                                     </div>
