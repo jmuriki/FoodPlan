@@ -14,6 +14,7 @@ from django.db import DatabaseError, OperationalError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
+from django.db.models import Sum
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -83,7 +84,7 @@ def show_lk(request):
 def show_card(request, card_id):
     card_item = Dish.objects.filter(id=card_id)
     total_calories = sum(
-        [product.weight for dish in card_item for product in dish.product.all()]
+        [product.weight for item in card_item for product in item.product.all()]
     )
     return render(request, 'card.html', context={
         'card_item': card_item,
@@ -91,11 +92,20 @@ def show_card(request, card_id):
     })
 
 
-def show_subscription(request):
-    context = {}
-    if request.method == 'POST':
-        subscription_id = request.POST.get('subscription_id')
-    return render(request, 'subscription.html', context)
+def show_subscription(request, subscription_id):
+    subscription_item = Subscription.objects.filter(id=subscription_id)
+    total_calories_per_dish = []
+    for subscription in subscription_item:
+        for dish in subscription.dish.all():
+            total_calories = sum(
+                [product.weight for product in dish.product.all()]
+            )
+            total_calories_per_dish.append(total_calories)
+    total_calories_per_dish.reverse()
+    return render(request, 'subscription.html', context={
+        'subscription_item': subscription_item,
+        'total_calories_per_dish': total_calories_per_dish,
+    })
 
 
 def show_order(request):
@@ -142,7 +152,7 @@ def checkout(request):
 
 
 def use_promo_code(request):
-    promo_codes = {} # TODO Promocode model
+    promo_codes = {}  # TODO Promocode model
     promo_code = None
     if request.method == 'POST':
         promo_code = request.POST.get('promo_code')
@@ -187,7 +197,10 @@ def create_subscription(request):
     }
     description = descriptions.get(type_food)
     total_amount = request.session.get('total_amount')
-    temporary_calorie_value = 1400  # Связать логику Dish и Subscription
+    filtered_dishes = Dish.objects.exclude(allergy__in=allergies)[:number_meals]
+    temporary_calorie_value = sum(
+        [product.weight for dish in filtered_dishes for product in dish.product.all()]
+    )
     try:
         type_dish = Category.objects.get(title=type_food)
         order, created = Subscription.objects.get_or_create(
@@ -201,6 +214,7 @@ def create_subscription(request):
             type_dish=type_dish,
             # TODO promo_code=promo_code,
         )
+        order.dish.set(filtered_dishes)
         if allergies:
             allergies_objects = Allergy.objects.filter(id__in=allergies)
             order.allergy.set(allergies_objects)
