@@ -62,7 +62,10 @@ def show_recovery(request):
 def show_lk(request):
     user = request.user
     customer, _ = Customer.objects.get_or_create(user=user)
-    subscriptions = Subscription.objects.filter(customer=customer)
+    subscriptions = Subscription.objects.filter(
+        customer=customer,
+        status=Subscription.ChoicesStatus.Paid
+    )
 
     context = {
         'first_name': user.first_name,
